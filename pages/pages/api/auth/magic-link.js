@@ -1,9 +1,13 @@
-// pages/api/auth/custom-magic-link.js
+// pages/api/auth/magic-link.js
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import Handlebars from 'handlebars';
-import { supabase } from '../../../lib/supabaseClient';
 import emailTemplates from '../../../lib/emailTemplates';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
 // Email configuration
 const emailConfig = {
@@ -22,45 +26,43 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+  
   try {
-    const { email, redirectTo, customData } = req.body;
-
+    const { email, redirectTo } = req.body;
+    
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
     }
-
+    
     // Generate magic link
     const { data, error } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
       email,
       options: {
-        redirectTo: redirectTo || process.env.NEXT_PUBLIC_BASE_URL,
-        data: customData || {}
+        redirectTo: redirectTo || process.env.NEXT_PUBLIC_BASE_URL
       }
     });
-
+    
     if (error) {
       console.error('Error generating magic link:', error);
       return res.status(500).json({ error: 'Failed to generate magic link' });
     }
-
+    
     // Get magic link template
     const template = emailTemplates['magic-link'];
-
+    
     if (!template) {
       return res.status(404).json({ error: 'Email template not found' });
     }
-
+    
     // Compile template with Handlebars
     const compiledSubject = Handlebars.compile(template.subject);
     const compiledContent = Handlebars.compile(template.content);
-
+    
     // Prepare data for template
     const templateData = {
       customer: {
-        email,
-        ...customData
+        email
       },
       company: {
         name: process.env.COMPANY_NAME || 'Sturij',
@@ -73,11 +75,11 @@ export default async function handler(req, res) {
         magic: data.properties.action_link
       }
     };
-
+    
     // Render email subject and content
-    const subject = compiledSubject(templateData) ;
+    const subject = compiledSubject(templateData);
     const html = compiledContent(templateData);
-
+    
     // Create email transport
     const transporter = nodemailer.createTransport({
       host: emailConfig.host,
@@ -85,7 +87,7 @@ export default async function handler(req, res) {
       secure: emailConfig.secure,
       auth: emailConfig.auth
     });
-
+    
     // Send email
     const info = await transporter.sendMail({
       from: `"${process.env.COMPANY_NAME || 'Sturij'}" <${emailConfig.from}>`,
@@ -93,7 +95,7 @@ export default async function handler(req, res) {
       subject,
       html
     });
-
+    
     // Log email sending in database
     await supabase
       .from('email_logs')
@@ -104,17 +106,16 @@ export default async function handler(req, res) {
           subject,
           status: 'sent',
           message_id: info.messageId,
-          sent_at: new Date().toISOString(),
-          metadata: customData
+          sent_at: new Date().toISOString()
         }
       ]);
-
+    
     return res.status(200).json({
       success: true,
-      message: 'Custom magic link sent successfully'
+      message: 'Magic link sent successfully'
     });
   } catch (error) {
-    console.error('Error sending custom magic link:', error);
-    return res.status(500).json({ error: 'Failed to send custom magic link' });
+    console.error('Error sending magic link:', error);
+    return res.status(500).json({ error: 'Failed to send magic link' });
   }
 }

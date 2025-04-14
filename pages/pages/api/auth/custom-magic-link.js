@@ -22,14 +22,14 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+  
   try {
     const { email, redirectTo, customData } = req.body;
-
+    
     if (!email) {
       return res.status(400).json({ error: 'Email is required' });
     }
-
+    
     // Generate magic link
     const { data, error } = await supabase.auth.admin.generateLink({
       type: 'magiclink',
@@ -39,23 +39,23 @@ export default async function handler(req, res) {
         data: customData || {}
       }
     });
-
+    
     if (error) {
       console.error('Error generating magic link:', error);
       return res.status(500).json({ error: 'Failed to generate magic link' });
     }
-
+    
     // Get magic link template
     const template = emailTemplates['magic-link'];
-
+    
     if (!template) {
       return res.status(404).json({ error: 'Email template not found' });
     }
-
+    
     // Compile template with Handlebars
     const compiledSubject = Handlebars.compile(template.subject);
     const compiledContent = Handlebars.compile(template.content);
-
+    
     // Prepare data for template
     const templateData = {
       customer: {
@@ -73,11 +73,11 @@ export default async function handler(req, res) {
         magic: data.properties.action_link
       }
     };
-
+    
     // Render email subject and content
-    const subject = compiledSubject(templateData) ;
+    const subject = compiledSubject(templateData);
     const html = compiledContent(templateData);
-
+    
     // Create email transport
     const transporter = nodemailer.createTransport({
       host: emailConfig.host,
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
       secure: emailConfig.secure,
       auth: emailConfig.auth
     });
-
+    
     // Send email
     const info = await transporter.sendMail({
       from: `"${process.env.COMPANY_NAME || 'Sturij'}" <${emailConfig.from}>`,
@@ -93,7 +93,7 @@ export default async function handler(req, res) {
       subject,
       html
     });
-
+    
     // Log email sending in database
     await supabase
       .from('email_logs')
@@ -108,7 +108,7 @@ export default async function handler(req, res) {
           metadata: customData
         }
       ]);
-
+    
     return res.status(200).json({
       success: true,
       message: 'Custom magic link sent successfully'
