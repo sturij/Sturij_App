@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import Handlebars from 'handlebars';
 import { supabase } from '../../../lib/supabaseClient';
-import emailTemplates from '../../../lib/emailTemplates';
+import * as emailTemplates from '../../../lib/emailTemplates';
 
 // Email configuration
 const emailConfig = {

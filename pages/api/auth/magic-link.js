@@ -2,7 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import Handlebars from 'handlebars';
-import emailTemplates from '../../../lib/emailTemplates';
+import * as emailTemplates from '../../../lib/emailTemplates';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
