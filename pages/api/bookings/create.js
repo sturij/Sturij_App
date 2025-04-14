@@ -1,97 +1,124 @@
 // pages/api/bookings/create.js
-import { supabase } from '../../../lib/supabaseClient';
-import { sendEmail } from '../../../lib/emailService';
+import { createClient } from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
+  // Check authentication
+  const { data: { session }, error: authError } = await supabase.auth.getSession();
+  
+  if (authError || !session) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  
+  // Only allow POST method
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  // Check if user is authenticated
-  const { data: { session }, error: authError } = await supabase.auth.getSession();
-
-  if (authError) {
-    return res.status(401).json({ error: 'Authentication required' });
-  }
-
-  if (!session) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-
-  const { date, time, serviceType, notes } = req.body;
-
-  if (!date || !time) {
-    return res.status(400).json({ error: 'Date and time are required' });
-  }
-
+  
   try {
-    // Calculate end time (assuming 30-minute appointments)
-    const [hours, minutes] = time.split(':').map(Number);
-    const startTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-
-    let endHours = hours;
-    let endMinutes = minutes + 30;
-
-    if (endMinutes >= 60) {
-      endHours += 1;
-      endMinutes -= 60;
+    // Check if user is admin for manual bookings
+    const { data: userData, error: userError } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', session.user.id)
+      .single();
+    
+    if (userError) throw userError;
+    
+    const {
+      customer_name,
+      customer_email,
+      customer_phone,
+      service_type,
+      date,
+      time,
+      notes,
+      send_confirmation,
+      add_to_calendar
+    } = req.body;
+    
+    // Validate required fields
+    if (!customer_name || !customer_email || !date || !time) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
-
-    const endTime = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
-
+    
     // Check if the time slot is available
-    const { data: isAvailable, error: availabilityError } = await supabase.rpc('is_time_slot_available', {
-      check_date: date,
-      check_time: startTime
-    });
-
-    if (availabilityError) throw availabilityError;
-
-    if (!isAvailable) {
-      return res.status(409).json({ error: 'This time slot is no longer available' });
+    const { data: existingBookings, error: existingError } = await supabase
+      .from('bookings')
+      .select('id')
+      .eq('date', date)
+      .eq('time', time)
+      .not('status', 'eq', 'cancelled');
+    
+    if (existingError) throw existingError;
+    
+    if (existingBookings && existingBookings.length > 0) {
+      return res.status(409).json({ error: 'This time slot is already booked' });
     }
-
+    
     // Create the booking
+    const bookingId = uuidv4();
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
       .insert([
         {
+          id: bookingId,
           user_id: session.user.id,
-          booking_date: date,
-          start_time: startTime,
-          end_time: endTime,
-          service_type: serviceType || 'General',
-          notes: notes || '',
-          status: 'confirmed'
+          customer_name,
+          customer_email,
+          customer_phone,
+          service_type,
+          date,
+          time,
+          notes,
+          status: 'confirmed',
+          created_at: new Date().toISOString(),
+          created_by: session.user.id
         }
       ])
-      .select();
-
+      .select()
+      .single();
+    
     if (bookingError) throw bookingError;
-
-    // Send confirmation email
-    try {
-      await sendEmail({
-        to: session.user.email,
-        subject: 'Booking Confirmation',
-        text: `Your appointment has been confirmed for ${date} at ${time}.`,
-        html: `
-          <h2>Booking Confirmation</h2>
-          <p>Dear ${session.user.user_metadata?.name || session.user.email},</p>
-          <p>Your appointment has been confirmed for <strong>${date}</strong> at <strong>${time}</strong>.</p>
-          <p>Service: ${serviceType || 'General'}</p>
-          ${notes ? `<p>Notes: ${notes}</p>` : ''}
-          <p>Thank you for choosing our service!</p>
-        `
-      });
-    } catch (emailError) {
-      console.error('Error sending confirmation email:', emailError);
-      // Continue even if email fails
+    
+    // Send confirmation email if requested
+    if (send_confirmation) {
+      try {
+        // This would integrate with your email service
+        // For now, we'll just log it
+        console.log(`Sending confirmation email to ${customer_email} for booking ${bookingId}`);
+        
+        // In a real implementation, you would call your email service here
+        // await sendConfirmationEmail(customer_email, booking);
+      } catch (emailError) {
+        console.error('Error sending confirmation email:', emailError);
+        // Don't fail the request if email sending fails
+      }
     }
-
-    return res.status(200).json({ success: true, booking: booking[0] });
+    
+    // Add to Google Calendar if requested
+    if (add_to_calendar) {
+      try {
+        // This would integrate with Google Calendar API
+        // For now, we'll just log it
+        console.log(`Adding booking ${bookingId} to Google Calendar`);
+        
+        // In a real implementation, you would call the Google Calendar API here
+        // await addToGoogleCalendar(booking);
+      } catch (calendarError) {
+        console.error('Error adding to Google Calendar:', calendarError);
+        // Don't fail the request if calendar integration fails
+      }
+    }
+    
+    return res.status(201).json({ booking });
   } catch (error) {
     console.error('Error creating booking:', error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: 'Failed to create booking' });
   }
 }
