@@ -1,9 +1,7 @@
-// pages/api/availability/time-slots.js
 import { supabase } from '../../../lib/supabaseClient';
 import { getDay, parseISO } from 'date-fns';
 
 export default async function handler(req, res) {
-  // Check if method is GET
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -15,25 +13,22 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Date is required' });
     }
 
-    // Parse the date
     const parsedDate = parseISO(date);
-    const dayOfWeek = getDay(parsedDate); // 0 = Sunday, 1 = Monday, etc.
+    const dayOfWeek = getDay(parsedDate);
 
-    // Check if there's an exception for this date
     const { data: exception, error: exceptionError } = await supabase
       .from('availability_exceptions')
       .select('*')
       .eq('date', date)
       .single();
 
-    if (exceptionError && exceptionError.code !== 'PGRST116') { // PGRST116 is "not found"
+    if (exceptionError && exceptionError.code !== 'PGRST116') {
       throw exceptionError;
     }
 
     let timeSlots = [];
 
     if (exception) {
-      // If the exception is marked as available and has slots, use those
       if (exception.is_available && exception.slots && exception.slots.length > 0) {
         timeSlots = exception.slots.map(slot => ({
           time: slot.start_time,
@@ -42,7 +37,6 @@ export default async function handler(req, res) {
         }));
       }
     } else {
-      // Otherwise, get weekly availability for this day
       const { data: weeklySlots, error: weeklyError } = await supabase
         .from('availability_weekly')
         .select('*')
@@ -57,7 +51,6 @@ export default async function handler(req, res) {
       }));
     }
 
-    // Check for existing bookings that might make some slots unavailable
     const { data: bookings, error: bookingsError } = await supabase
       .from('bookings')
       .select('*')
@@ -65,22 +58,14 @@ export default async function handler(req, res) {
 
     if (bookingsError) throw bookingsError;
 
-    // Mark slots as unavailable if they're already booked
     if (bookings && bookings.length > 0) {
       timeSlots = timeSlots.map(slot => {
         const isBooked = bookings.some(booking => booking.time === slot.time);
-        return {
-          ...slot,
-          available: !isBooked
-        };
+        return { ...slot, available: !isBooked };
       });
     }
 
-    // Sort time slots by time
-    timeSlots.sort((a, b) => {
-      return a.time.localeCompare(b.time);
-    });
-
+    timeSlots.sort((a, b) => a.time.localeCompare(b.time));
     return res.status(200).json({ timeSlots });
   } catch (error) {
     console.error('Error getting time slots:', error);
