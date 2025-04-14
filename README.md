@@ -1,86 +1,106 @@
-# Sturij Calendar System - Clean Next.js Implementation
+# Sturij Google Authentication Integration
 
-This is a clean Next.js implementation of the Sturij Calendar System that resolves the Deno-related build errors you were experiencing. This solution uses Next.js API routes for email functionality instead of Supabase Edge Functions, making it fully compatible with Vercel deployment.
+This package contains a complete solution for integrating Google authentication with the existing magic link system in the Sturij calendar booking application.
 
-## What Caused the Build Errors
+## Solution Overview
 
-Your build was failing with errors like:
+The solution provides a seamless user experience from enquiry form submission through authentication (both Google and magic links) to calendar booking and confirmation. It includes:
+
+1. **Google Authentication Integration**: Extends the existing authentication system to support Google Sign-In
+2. **Enhanced Customer Enquiry Form**: Integrates with both authentication methods
+3. **Enhanced Calendar Booking System**: Works with authenticated users from both methods
+4. **Database Schema**: Stores user data, enquiries, and bookings in Supabase
+5. **Authentication Callback Handler**: Processes authentication responses
+6. **Booking Confirmation Page**: Displays booking details after successful appointment
+
+## Files Included
+
+- `google-auth-integration.js`: Google authentication implementation
+- `enhanced-customer-enquiry.js`: Enhanced enquiry form implementation
+- `enhanced-calendar-booking.js`: Enhanced calendar booking implementation
+- `auth-callback-handler.js`: Authentication callback handler implementation
+- `booking-confirmation.html`: Booking confirmation page
+- `supabase-schema.sql`: Database schema for Supabase
+- `IMPLEMENTATION_DOCUMENTATION.md`: Comprehensive implementation documentation
+- `integration-architecture.md`: Architecture design document
+- `testing-plan.md`: Testing plan for the integration
+- `test-results.md`: Results of testing the integration
+
+## Installation Instructions
+
+1. **Copy Files**: Copy all JavaScript files to your project directory
+2. **Include Scripts**: Add script tags to your HTML files:
+
+```html
+<!-- Google Authentication -->
+<script src="google-auth-integration.js"></script>
+
+<!-- Enhanced Customer Enquiry -->
+<script src="enhanced-customer-enquiry.js"></script>
+
+<!-- Enhanced Calendar Booking -->
+<script src="enhanced-calendar-booking.js"></script>
+
+<!-- Authentication Callback Handler -->
+<script src="auth-callback-handler.js"></script>
 ```
-Failed to compile due to TypeScript errors in supabase/functions/send-email/index.ts
-Cannot find module 'https://deno.land/std@0.131.0/http/server.ts' from TypeScript compilation
-Mixing Deno modules with Next.js environment
-```
 
-This happened because:
-1. Your project contained Supabase Edge Functions (in the `supabase/functions/send-email` directory)
-2. These functions used Deno-specific imports that aren't compatible with Next.js
-3. Next.js tried to compile these files during the build process and failed
+3. **Copy HTML**: Copy the booking-confirmation.html file to your project directory
+4. **Set Up Database**: Run the supabase-schema.sql script in your Supabase project
 
-## How This Solution Fixes the Problem
+## Configuration
 
-This clean implementation:
-1. Completely removes all Supabase Edge Functions with Deno imports
-2. Uses Next.js API routes for email functionality instead
-3. Adds configuration to exclude any Supabase functions directories from compilation
-4. Provides the same functionality without any Deno dependencies
+### Google Authentication Configuration
 
-## Deployment Instructions for Vercel
+1. Create a Google Cloud project
+2. Configure OAuth consent screen
+3. Create OAuth client ID
+4. Add authorized JavaScript origins and redirect URIs:
+   - JavaScript Origins: `https://your-domain.com`
+   - Redirect URIs: `https://your-domain.com/auth.html`
+5. Update the `GOOGLE_CLIENT_ID` in `google-auth-integration.js`
 
-### 1. Prepare Your Project
+### Supabase Configuration
 
-Before deploying to Vercel, make sure:
-- You've completely removed any `supabase/functions` directory from your project
-- You have the `jsconfig.json` file that excludes the `supabase/functions` directory
-- Your `next.config.js` is properly configured
+1. Create a Supabase project
+2. Run the database schema SQL
+3. Configure authentication providers (Email and Google)
+4. Update the Supabase URL and key in your application
 
-### 2. Set Up Environment Variables in Vercel
+## Usage
 
-In your Vercel project settings, add these environment variables:
-- `SENDGRID_API_KEY`: Your SendGrid API key
-- `EMAIL_SENDER`: contact@sturij.com
-- `TEST_EMAIL_RECIPIENT`: mark.walton@gmail.com
-- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+### Enquiry Form
 
-### 3. Deploy to Vercel
+The enhanced enquiry form will automatically present authentication options after submission:
 
-1. Push your code to a Git repository (GitHub, GitLab, or Bitbucket)
-2. Import the repository in Vercel
-3. Vercel will automatically detect it's a Next.js project
-4. Click "Deploy"
+1. User fills out enquiry form
+2. Form is validated on submission
+3. Authentication options modal is displayed
+4. User chooses authentication method:
+   - Magic Link: Sends email with link to authenticate
+   - Google: Redirects to Google authentication
+5. After authentication, user is redirected to calendar booking
 
-### 4. Verify Deployment
+### Calendar Booking
 
-After deployment:
-1. Check the build logs to ensure there are no Deno-related errors
-2. Visit the `/test-email` route to test the email functionality
-3. Verify that all components are working correctly
+The enhanced calendar booking system will automatically:
 
-## If You Still Encounter Build Errors
+1. Check authentication status
+2. If not authenticated, redirect to authentication
+3. If authenticated, pre-fill booking form with user data
+4. Allow user to select date and time for appointment
+5. Store booking with user ID reference
+6. Redirect to booking confirmation page
 
-If you still see Deno-related errors after deploying this clean implementation:
+## Documentation
 
-1. **Check for Hidden Files**: Make sure there are no hidden Supabase Edge Function files in your repository
-2. **Create a .vercelignore File**: Add a `.vercelignore` file to your project root with:
-   ```
-   supabase/functions
-   ```
-3. **Update .gitignore**: Add the following to your `.gitignore` file:
-   ```
-   # Supabase
-   supabase/functions
-   ```
-4. **Force Clean Deployment**: In Vercel, try deploying with the "Override" option to force a clean build
+For detailed implementation documentation, please refer to:
 
-## Email Functionality
+- `IMPLEMENTATION_DOCUMENTATION.md`: Comprehensive implementation documentation
+- `integration-architecture.md`: Architecture design document
+- `testing-plan.md`: Testing plan for the integration
+- `test-results.md`: Results of testing the integration
 
-This implementation uses Next.js API routes for email functionality:
+## Support
 
-- `pages/api/send-email.js`: API route that handles sending emails via SendGrid
-- `lib/emailService.js`: Client-side service for email functionality
-
-To test the email functionality, visit the `/test-email` route in your deployed application.
-
-## Need Help?
-
-If you continue to experience issues with deployment, please let me know and I'll provide further assistance.
+If you have any questions or need assistance with the integration, please contact support@sturij.com.

@@ -1,6 +1,6 @@
 // pages/api/auth/custom-magic-link.js
 import { supabase } from '../../../lib/supabaseClient';
-import { sendEmail, generateMagicLinkEmail } from '../../../lib/emailService';
+import { generateMagicLinkEmail } from '../../../lib/emailTemplates';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -45,11 +45,16 @@ export default async function handler(req, res) {
     //   email.split('@')[0] // Simple way to get a username from email
     // );
     
-    // await sendEmail({
-    //   to: email,
-    //   subject: magicLinkTemplate.subject,
-    //   content: magicLinkTemplate.content,
-    //   htmlContent: magicLinkTemplate.htmlContent
+    // await fetch('/api/email', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify({
+    //     to: email,
+    //     subject: magicLinkTemplate.subject,
+    //     content: magicLinkTemplate.content,
+    //   }),
     // });
 
     return res.status(200).json({ 

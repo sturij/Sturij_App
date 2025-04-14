@@ -1,6 +1,5 @@
 // pages/email-test.js
 import { useState } from 'react';
-import Head from 'next/head';
 
 export default function EmailTest() {
   const [status, setStatus] = useState(null);
@@ -46,9 +45,6 @@ export default function EmailTest() {
 
   return (
     <div className="container mx-auto p-4">
-      <Head>
-        <title>Email Test - Sturij</title>
-      </Head>
       <h1 className="text-2xl font-bold mb-4">Email Testing</h1>
       <p className="mb-4">This page tests the email functionality using the Next.js API route.</p>
       

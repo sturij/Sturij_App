@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Management - Sturij Booking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .sidebar-item.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+        }
+        .sidebar-item:hover:not(.active) {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+        .booking-card {
+            transition: all 0.2s ease;
+        }
+        .booking-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="hidden md:flex md:flex-shrink-0">
+            <div class="flex flex-col w-64 bg-white border-r">
+                <div class="flex items-center justify-center h-16 px-4 border-b bg-blue-600">
+                    <h1 class="text-xl font-semibold text-white">Sturij Admin</h1>
+                </div>
+                <div class="flex flex-col flex-grow overflow-y-auto">
+                    <nav class="flex-1 px-2 py-4 space-y-1">
+                        <a href="index.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a href="availability.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="far fa-calendar-alt mr-3"></i>
+                            Availability
+                        </a>
+                        <a href="bookings.html" class="flex items-center px-4 py-3 text-sm font-medium text-blue-600 rounded-md sidebar-item active">
+                            <i class="fas fa-calendar-check mr-3"></i>
+                            Bookings
+                        </a>
+                        <a href="email-templates.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-envelope mr-3"></i>
+                            Email Templates
+                        </a>
+                        <a href="ai-assistant.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-robot mr-3"></i>
+                            AI Assistant
+                        </a>
+                        <a href="users.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-users mr-3"></i>
+                            Users
+                        </a>
+                        <a href="settings.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-cog mr-3"></i>
+                            Settings
+                        </a>
+                    </nav>
+                    <div class="p-4 border-t">
+                        <div class="flex items-center">
+                            <img id="admin-avatar" class="w-8 h-8 rounded-full mr-3" src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" alt="Admin">
+                            <div>
+                                <p id="admin-name" class="text-sm font-medium text-gray-700">Admin User</p>
+                                <p id="admin-email" class="text-xs text-gray-500">admin@example.com</p>
+                            </div>
+                        </div>
+                        <button id="sign-out-button" class="mt-3 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile sidebar -->
+        <div class="md:hidden fixed inset-0 z-40 flex" id="mobile-sidebar" style="display: none;">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" id="sidebar-backdrop"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+                <div class="absolute top-0 right-0 -mr-12 pt-2">
+                    <button id="close-sidebar" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                        <span class="sr-only">Close sidebar</span>
+                        <i class="fas fa-times text-white"></i>
+                    </button>
+                </div>
+                <div class="flex items-center justify-center h-16 px-4 border-b bg-blue-600">
+                    <h1 class="text-xl font-semibold text-white">Sturij Admin</h1>
+                </div>
+                <div class="flex-1 h-0 overflow-y-auto">
+                    <nav class="px-2 py-4 space-y-1">
+                        <a href="index.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a href="availability.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="far fa-calendar-alt mr-3"></i>
+                            Availability
+                        </a>
+                        <a href="bookings.html" class="flex items-center px-4 py-3 text-sm font-medium text-blue-600 rounded-md sidebar-item active">
+                            <i class="fas fa-calendar-check mr-3"></i>
+                            Bookings
+                        </a>
+                        <a href="email-templates.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-envelope mr-3"></i>
+                            Email Templates
+                        </a>
+                        <a href="ai-assistant.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-robot mr-3"></i>
+                            AI Assistant
+                        </a>
+                        <a href="users.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-users mr-3"></i>
+                            Users
+                        </a>
+                        <a href="settings.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-cog mr-3"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t">
+                    <div class="flex items-center">
+                        <img class="w-8 h-8 rounded-full mr-3" src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" alt="Admin">
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Admin User</p>
+                            <p class="text-xs text-gray-500">admin@example.com</p>
+                        </div>
+                    </div>
+                    <button id="mobile-sign-out-button" class="mt-3 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+            <div class="flex-shrink-0 w-14"></div>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex flex-col flex-1 w-0 overflow-hidden">
+            <!-- Top navbar -->
+            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
+                <button id="open-sidebar" class="md:hidden px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                    <span class="sr-only">Open sidebar</span>
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="flex-1 px-4 flex justify-between">
+                    <div class="flex-1 flex items-center">
+                        <h1 class="text-xl font-semibold text-gray-800">Booking Management</h1>
+                    </div>
+                    <div class="ml-4 flex items-center md:ml-6">
+                        <button class="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <span class="sr-only">View notifications</span>
+                            <i class="fas fa-bell"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content area -->
+            <main class="flex-1 relative overflow-y-auto focus:outline-none">
+                <div class="py-6">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                        <!-- Tabs -->
+                        <div class="border-b border-gray-200">
+                            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                                <button id="tab-upcoming" class="border-blue-500 text-blue-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                    Upcoming Bookings
+                                </button>
+                                <button id="tab-past" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                    Past Bookings
+                                </button>
+                                <button id="tab-create" class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                    Create Booking
+                                </button>
+                            </nav>
+                        </div>
+
+                        <!-- Upcoming Bookings Tab Content -->
+                        <div id="upcoming-bookings-content" class="mt-6">
+                            <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                        Upcoming Bookings
+                                    </h3>
+                                    <div class="flex space-x-2">
+                                        <div class="relative">
+                                            <input type="text" id="search-upcoming" placeholder="Search bookings..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-search text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                        <select id="filter-upcoming" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                            <option value="all">All Bookings</option>
+                                            <option value="today">Today</option>
+                                            <option value="tomorrow">Tomorrow</option>
+                                            <option value="this-week">This Week</option>
+                                            <option value="next-week">Next Week</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                                    <div id="upcoming-bookings-list" class="space-y-4">
+                                        <!-- Loading indicator -->
+                                        <div id="upcoming-loading" class="flex justify-center py-8">
+                                            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                                        </div>
+                                        
+                                        <!-- No bookings message -->
+                                        <div id="no-upcoming-bookings" class="text-center py-8 text-gray-500" style="display: none;">
+                                            <i class="far fa-calendar-times text-4xl mb-2"></i>
+                                            <p>No upcoming bookings found.</p>
+                                        </div>
+                                        
+                                        <!-- Booking items will be added here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Past Bookings Tab Content -->
+                        <div id="past-bookings-content" class="mt-6" style="display: none;">
+                            <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                        Past Bookings
+                                    </h3>
+                                    <div class="flex space-x-2">
+                                        <div class="relative">
+                                            <input type="text" id="search-past" placeholder="Search bookings..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                                <i class="fas fa-search text-gray-400"></i>
+                                            </div>
+                                        </div>
+                                        <select id="filter-past" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                            <option value="all">All Bookings</option>
+                                            <option value="yesterday">Yesterday</option>
+                                            <option value="last-week">Last Week</option>
+                                            <option value="last-month">Last Month</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                                    <div id="past-bookings-list" class="space-y-4">
+                                        <!-- Loading indicator -->
+                                        <div id="past-loading" class="flex justify-center py-8">
+                                            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                                        </div>
+                                        
+                                        <!-- No bookings message -->
+                                        <div id="no-past-bookings" class="text-center py-8 text-gray-500" style="display: none;">
+                                            <i class="far fa-calendar-times text-4xl mb-2"></i>
+                                            <p>No past bookings found.</p>
+                                        </div>
+                                        
+                                        <!-- Booking items will be added here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Create Booking Tab Content -->
+                        <div id="create-booking-content" class="mt-6" style="display: none;">
+                            <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                                <div class="px-4 py-5 sm:px-6">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                        Create New Booking
+                                    </h3>
+                                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                                        Create a manual booking for a customer.
+                                    </p>
+                                </div>
+                                <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                                    <form id="create-booking-form" class="space-y-6">
+                                        <!-- Customer Information -->
+                                        <div>
+                                            <h4 class="text-md font-medium text-gray-900 mb-4">Customer Information</h4>
+                                            <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                                <div class="sm:col-span-3">
+                                                    <label for="customer-name" class="block text-sm font-medium text-gray-700">
+                                                        Name
+                                                    </label>
+                                                    <div class="mt-1">
+                                                        <input type="text" id="customer-name" name="customer-name" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                    </div>
+                                                </div>
+                                                <div class="sm:col-span-3">
+                                                    <label for="customer-email" class="block text-sm font-medium text-gray-700">
+                                                        Email
+                                                    </label>
+                                                    <div class="mt-1">
+                                                        <input type="email" id="customer-email" name="customer-email" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                    </div>
+                                                </div>
+                                                <div class="sm:col-span-3">
+                                                    <label for="customer-phone" class="block text-sm font-medium text-gray-700">
+                                                        Phone
+                                                    </label>
+                                                    <div class="mt-1">
+                                                        <input type="tel" id="customer-phone" name="customer-phone" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                    </div>
+                                                </div>
+                                                <div class="sm:col-span-3">
+                                                    <label for="service-type" class="block text-sm font-medium text-gray-700">
+                                                        Service Type
+                                                    </label>
+                                                    <div class="mt-1">
+                                                        <select id="service-type" name="service-type" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                            <option value="consultation">Consultation</option>
+                                                            <option value="design">Design Session</option>
+                                                            <option value="follow-up">Follow-up Meeting</option>
+                                                            <option value="other">Other</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Booking Details -->
+                                        <div>
+                                            <h4 class="text-md font-medium text-gray-900 mb-4">Booking Details</h4>
+                                            <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+                                                <div class="sm:col-span-3">
+                                                    <label for="booking-date" class="block text-sm font-medium text-gray-700">
+                                                        Date
+                                                    </label>
+                                                    <div class="mt-1">
+                                                        <input type="date" id="booking-date" name="booking-date" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                    </div>
+                                                </div>
+                                                <div class="sm:col-span-3">
+                                                    <label for="booking-time" class="block text-sm font-medium text-gray-700">
+                                                        Time
+                                                    </label>
+                                                    <div class="mt-1">
+                                                        <select id="booking-time" name="booking-time" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                            <option value="">Select a date first</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="sm:col-span-6">
+                                                    <label for="booking-notes" class="block text-sm font-medium text-gray-700">
+                                                        Notes
+                                                    </label>
+                                                    <div class="mt-1">
+                                                        <textarea id="booking-notes" name="booking-notes" rows="3" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                                                    </div>
+                                                    <p class="mt-2 text-sm text-gray-500">
+                                                        Add any additional information about this booking.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Notification Options -->
+                                        <div>
+                                            <h4 class="text-md font-medium text-gray-900 mb-4">Notification Options</h4>
+                                            <div class="space-y-4">
+                                                <div class="flex items-start">
+                                                    <div class="flex items-center h-5">
+                                                        <input id="send-confirmation" name="send-confirmation" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded" checked>
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label for="send-confirmation" class="font-medium text-gray-700">Send confirmation email</label>
+                                                        <p class="text-gray-500">Send an email confirmation to the customer with booking details.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-start">
+                                                    <div class="flex items-center h-5">
+                                                        <input id="add-to-calendar" name="add-to-calendar" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded" checked>
+                                                    </div>
+                                                    <div class="ml-3 text-sm">
+                                                        <label for="add-to-calendar" class="font-medium text-gray-700">Add to Google Calendar</label>
+                                                        <p class="text-gray-500">Add this booking to your Google Calendar.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-5">
+                                            <div class="flex justify-end">
+                                                <button type="button" id="reset-booking-form" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                    Reset
+                                                </button>
+                                                <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                    Create Booking
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div id="booking-details-modal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Booking Details
+                            </h3>
+                            <div class="mt-4">
+                                <div id="booking-details-content" class="space-y-4">
+                                    <!-- Loading indicator -->
+                                    <div id="booking-details-loading" class="flex justify-center py-4">
+                                        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                                    </div>
+                                    
+                                    <!-- Booking details will be added here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="close-booking-details" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reschedule Modal -->
+    <div id="reschedule-modal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="reschedule-modal-title">
+                                Reschedule Booking
+                            </h3>
+                            <div class="mt-4">
+                                <form id="reschedule-form" class="space-y-4">
+                                    <input type="hidden" id="reschedule-booking-id">
+                                    <div>
+                                        <label for="reschedule-date" class="block text-sm font-medium text-gray-700">
+                                            New Date
+                                        </label>
+                                        <div class="mt-1">
+                                            <input type="date" id="reschedule-date" name="reschedule-date" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="reschedule-time" class="block text-sm font-medium text-gray-700">
+                                            New Time
+                                        </label>
+                                        <div class="mt-1">
+                                            <select id="reschedule-time" name="reschedule-time" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                <option value="">Select a date first</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="reschedule-notes" class="block text-sm font-medium text-gray-700">
+                                            Reschedule Notes
+                                        </label>
+                                        <div class="mt-1">
+                                            <textarea id="reschedule-notes" name="reschedule-notes" rows="3" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="reschedule-notify" name="reschedule-notify" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded" checked>
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="reschedule-notify" class="font-medium text-gray-700">Notify customer</label>
+                                            <p class="text-gray-500">Send an email notification about the rescheduled booking.</p>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="confirm-reschedule" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Reschedule
+                    </button>
+                    <button id="cancel-reschedule" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Booking Modal -->
+    <div id="cancel-booking-modal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-exclamation-triangle text-red-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="cancel-modal-title">
+                                Cancel Booking
+                            </h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">
+                                    Are you sure you want to cancel this booking? This action cannot be undone.
+                                </p>
+                                <div class="mt-4">
+                                    <form id="cancel-form" class="space-y-4">
+                                        <input type="hidden" id="cancel-booking-id">
+                                        <div>
+                                            <label for="cancel-reason" class="block text-sm font-medium text-gray-700">
+                                                Cancellation Reason
+                                            </label>
+                                            <div class="mt-1">
+                                                <select id="cancel-reason" name="cancel-reason" class="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                                    <option value="customer-request">Customer Request</option>
+                                                    <option value="scheduling-conflict">Scheduling Conflict</option>
+                                                    <option value="unavailable">Service Provider Unavailable</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label for="cancel-notes" class="block text-sm font-medium text-gray-700">
+                                                Additional Notes
+                                            </label>
+                                            <div class="mt-1">
+                                                <textarea id="cancel-notes" name="cancel-notes" rows="3" class="shadow-sm focus:ring-red-500 focus:border-red-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start">
+                                            <div class="flex items-center h-5">
+                                                <input id="cancel-notify" name="cancel-notify" type="checkbox" class="focus:ring-red-500 h-4 w-4 text-red-600 border-gray-300 rounded" checked>
+                                            </div>
+                                            <div class="ml-3 text-sm">
+                                                <label for="cancel-notify" class="font-medium text-gray-700">Notify customer</label>
+                                                <p class="text-gray-500">Send an email notification about the cancellation.</p>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="confirm-cancel" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel Booking
+                    </button>
+                    <button id="cancel-cancel" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Keep Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../google-auth-integration.js"></script>
+    <script>
+        // Mobile sidebar toggle
+        document.getElementById('open-sidebar').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').style.display = 'flex';
+        });
+
+        document.getElementById('close-sidebar').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').style.display = 'none';
+        });
+
+        document.getElementById('sidebar-backdrop').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').style.display = 'none';
+        });
+
+        // Sign out functionality
+        document.getElementById('sign-out-button').addEventListener('click', function() {
+            if (window.googleAuthManager) {
+                window.googleAuthManager.signOut();
+            } else {
+                // Fallback if Google Auth Manager is not available
+                localStorage.removeItem('sturijUserInfo');
+                window.location.href = '../auth.html';
+            }
+        });
+
+        document.getElementById('mobile-sign-out-button').addEventListener('click', function() {
+            if (window.googleAuthManager) {
+                window.googleAuthManager.signOut();
+            } else {
+                // Fallback if Google Auth Manager is not available
+                localStorage.removeItem('sturijUserInfo');
+                window.location.href = '../auth.html';
+            }
+        });
+
+        // Tab switching
+        document.getElementById('tab-upcoming').addEventListener('click', function() {
+            document.getElementById('tab-upcoming').classList.add('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-upcoming').classList.remove('border-transparent', 'text-gray-500');
+            document.getElementById('tab-past').classList.remove('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-past').classList.add('border-transparent', 'text-gray-500');
+            document.getElementById('tab-create').classList.remove('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-create').classList.add('border-transparent', 'text-gray-500');
+            
+            document.getElementById('upcoming-bookings-content').style.display = 'block';
+            document.getElementById('past-bookings-content').style.display = 'none';
+            document.getElementById('create-booking-content').style.display = 'none';
+            
+            // Load upcoming bookings
+            loadUpcomingBookings();
+        });
+
+        document.getElementById('tab-past').addEventListener('click', function() {
+            document.getElementById('tab-past').classList.add('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-past').classList.remove('border-transparent', 'text-gray-500');
+            document.getElementById('tab-upcoming').classList.remove('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-upcoming').classList.add('border-transparent', 'text-gray-500');
+            document.getElementById('tab-create').classList.remove('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-create').classList.add('border-transparent', 'text-gray-500');
+            
+            document.getElementById('upcoming-bookings-content').style.display = 'none';
+            document.getElementById('past-bookings-content').style.display = 'block';
+            document.getElementById('create-booking-content').style.display = 'none';
+            
+            // Load past bookings
+            loadPastBookings();
+        });
+
+        document.getElementById('tab-create').addEventListener('click', function() {
+            document.getElementById('tab-create').classList.add('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-create').classList.remove('border-transparent', 'text-gray-500');
+            document.getElementById('tab-upcoming').classList.remove('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-upcoming').classList.add('border-transparent', 'text-gray-500');
+            document.getElementById('tab-past').classList.remove('border-blue-500', 'text-blue-600');
+            document.getElementById('tab-past').classList.add('border-transparent', 'text-gray-500');
+            
+            document.getElementById('upcoming-bookings-content').style.display = 'none';
+            document.getElementById('past-bookings-content').style.display = 'none';
+            document.getElementById('create-booking-content').style.display = 'block';
+        });
+
+        // Load upcoming bookings
+        function loadUpcomingBookings() {
+            const upcomingList = document.getElementById('upcoming-bookings-list');
+            const loadingIndicator = document.getElementById('upcoming-loading');
+            const noBookingsMessage = document.getElementById('no-upcoming-bookings');
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'flex';
+            noBookingsMessage.style.display = 'none';
+            
+            // Clear existing bookings
+            while (upcomingList.firstChild) {
+                if (upcomingList.firstChild.id === 'upcoming-loading' || upcomingList.firstChild.id === 'no-upcoming-bookings') {
+                    break;
+                }
+                upcomingList.removeChild(upcomingList.firstChild);
+            }
+            
+            // Get filter value
+            const filterValue = document.getElementById('filter-upcoming').value;
+            
+            // Get search value
+            const searchValue = document.getElementById('search-upcoming').value.toLowerCase();
+            
+            // Fetch bookings from API
+            fetch('/api/bookings/upcoming')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch upcoming bookings');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Filter bookings based on filter and search
+                    let filteredBookings = filterBookings(data.bookings, filterValue, searchValue);
+                    
+                    if (filteredBookings.length === 0) {
+                        // Show no bookings message
+                        noBookingsMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Add bookings to list
+                    filteredBookings.forEach(booking => {
+                        const bookingCard = createBookingCard(booking);
+                        upcomingList.appendChild(bookingCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading upcoming bookings:', error);
+                    
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Show error message
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'text-center py-8 text-red-500';
+                    errorMessage.innerHTML = `
+                        <i class="fas fa-exclamation-circle text-4xl mb-2"></i>
+                        <p>Error loading bookings. Please try again.</p>
+                    `;
+                    upcomingList.appendChild(errorMessage);
+                });
+        }
+
+        // Load past bookings
+        function loadPastBookings() {
+            const pastList = document.getElementById('past-bookings-list');
+            const loadingIndicator = document.getElementById('past-loading');
+            const noBookingsMessage = document.getElementById('no-past-bookings');
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'flex';
+            noBookingsMessage.style.display = 'none';
+            
+            // Clear existing bookings
+            while (pastList.firstChild) {
+                if (pastList.firstChild.id === 'past-loading' || pastList.firstChild.id === 'no-past-bookings') {
+                    break;
+                }
+                pastList.removeChild(pastList.firstChild);
+            }
+            
+            // Get filter value
+            const filterValue = document.getElementById('filter-past').value;
+            
+            // Get search value
+            const searchValue = document.getElementById('search-past').value.toLowerCase();
+            
+            // Fetch bookings from API
+            fetch('/api/bookings/past')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch past bookings');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Filter bookings based on filter and search
+                    let filteredBookings = filterBookings(data.bookings, filterValue, searchValue);
+                    
+                    if (filteredBookings.length === 0) {
+                        // Show no bookings message
+                        noBookingsMessage.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Add bookings to list
+                    filteredBookings.forEach(booking => {
+                        const bookingCard = createBookingCard(booking, true);
+                        pastList.appendChild(bookingCard);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading past bookings:', error);
+                    
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Show error message
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'text-center py-8 text-red-500';
+                    errorMessage.innerHTML = `
+                        <i class="fas fa-exclamation-circle text-4xl mb-2"></i>
+                        <p>Error loading bookings. Please try again.</p>
+                    `;
+                    pastList.appendChild(errorMessage);
+                });
+        }
+
+        // Filter bookings based on filter and search
+        function filterBookings(bookings, filterValue, searchValue) {
+            // First filter by date
+            let filteredBookings = bookings;
+            
+            if (filterValue !== 'all') {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                
+                const nextWeekStart = new Date(today);
+                nextWeekStart.setDate(nextWeekStart.getDate() - nextWeekStart.getDay() + 7);
+                
+                const nextWeekEnd = new Date(nextWeekStart);
+                nextWeekEnd.setDate(nextWeekEnd.getDate() + 6);
+                
+                const thisWeekStart = new Date(today);
+                thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
+                
+                const thisWeekEnd = new Date(thisWeekStart);
+                thisWeekEnd.setDate(thisWeekEnd.getDate() + 6);
+                
+                const lastWeekStart = new Date(thisWeekStart);
+                lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+                
+                const lastWeekEnd = new Date(lastWeekStart);
+                lastWeekEnd.setDate(lastWeekEnd.getDate() + 6);
+                
+                const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+                
+                switch (filterValue) {
+                    case 'today':
+                        filteredBookings = bookings.filter(booking => {
+                            const bookingDate = new Date(booking.date);
+                            return bookingDate.toDateString() === today.toDateString();
+                        });
+                        break;
+                    case 'tomorrow':
+                        filteredBookings = bookings.filter(booking => {
+                            const bookingDate = new Date(booking.date);
+                            return bookingDate.toDateString() === tomorrow.toDateString();
+                        });
+                        break;
+                    case 'this-week':
+                        filteredBookings = bookings.filter(booking => {
+                            const bookingDate = new Date(booking.date);
+                            return bookingDate >= thisWeekStart && bookingDate <= thisWeekEnd;
+                        });
+                        break;
+                    case 'next-week':
+                        filteredBookings = bookings.filter(booking => {
+                            const bookingDate = new Date(booking.date);
+                            return bookingDate >= nextWeekStart && bookingDate <= nextWeekEnd;
+                        });
+                        break;
+                    case 'yesterday':
+                        filteredBookings = bookings.filter(booking => {
+                            const bookingDate = new Date(booking.date);
+                            return bookingDate.toDateString() === yesterday.toDateString();
+                        });
+                        break;
+                    case 'last-week':
+                        filteredBookings = bookings.filter(booking => {
+                            const bookingDate = new Date(booking.date);
+                            return bookingDate >= lastWeekStart && bookingDate <= lastWeekEnd;
+                        });
+                        break;
+                    case 'last-month':
+                        filteredBookings = bookings.filter(booking => {
+                            const bookingDate = new Date(booking.date);
+                            return bookingDate >= lastMonthStart && bookingDate <= lastMonthEnd;
+                        });
+                        break;
+                }
+            }
+            
+            // Then filter by search
+            if (searchValue) {
+                filteredBookings = filteredBookings.filter(booking => {
+                    return (
+                        (booking.customer_name && booking.customer_name.toLowerCase().includes(searchValue)) ||
+                        (booking.customer_email && booking.customer_email.toLowerCase().includes(searchValue)) ||
+                        (booking.service_type && booking.service_type.toLowerCase().includes(searchValue))
+                    );
+                });
+            }
+            
+            return filteredBookings;
+        }
+
+        // Create booking card
+        function createBookingCard(booking, isPast = false) {
+            const bookingDate = new Date(booking.date);
+            const formattedDate = bookingDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            // Format time (HH:MM) to AM/PM
+            const formattedTime = formatTime(booking.time);
+            
+            // Determine status badge
+            let statusBadge = '';
+            if (booking.status === 'confirmed') {
+                statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Confirmed</span>';
+            } else if (booking.status === 'cancelled') {
+                statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelled</span>';
+            } else if (booking.status === 'rescheduled') {
+                statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Rescheduled</span>';
+            } else if (booking.status === 'completed') {
+                statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Completed</span>';
+            } else {
+                statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Pending</span>';
+            }
+            
+            const bookingCard = document.createElement('div');
+            bookingCard.className = 'booking-card bg-white shadow overflow-hidden sm:rounded-md';
+            bookingCard.innerHTML = `
+                <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            ${booking.customer_name || 'Unknown Customer'}
+                        </h3>
+                        <p class="mt-1 max-w-2xl text-sm text-gray-500 flex items-center">
+                            ${statusBadge}
+                            <span class="ml-2">${formattedDate} at ${formattedTime}</span>
+                        </p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="view-booking inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" data-id="${booking.id}">
+                            <i class="fas fa-eye mr-1"></i> View
+                        </button>
+                        ${!isPast && booking.status !== 'cancelled' ? `
+                            <button class="reschedule-booking inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-yellow-700 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500" data-id="${booking.id}">
+                                <i class="fas fa-calendar-alt mr-1"></i> Reschedule
+                            </button>
+                            <button class="cancel-booking inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500" data-id="${booking.id}">
+                                <i class="fas fa-times mr-1"></i> Cancel
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+                    <dl class="sm:divide-y sm:divide-gray-200">
+                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Email
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                ${booking.customer_email || 'N/A'}
+                            </dd>
+                        </div>
+                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Phone
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                ${booking.customer_phone || 'N/A'}
+                            </dd>
+                        </div>
+                        <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                            <dt class="text-sm font-medium text-gray-500">
+                                Service Type
+                            </dt>
+                            <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                                ${booking.service_type || 'General'}
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+            `;
+            
+            // Add event listeners
+            bookingCard.querySelector('.view-booking').addEventListener('click', function() {
+                const bookingId = this.getAttribute('data-id');
+                viewBookingDetails(bookingId);
+            });
+            
+            if (!isPast && booking.status !== 'cancelled') {
+                bookingCard.querySelector('.reschedule-booking').addEventListener('click', function() {
+                    const bookingId = this.getAttribute('data-id');
+                    openRescheduleModal(bookingId);
+                });
+                
+                bookingCard.querySelector('.cancel-booking').addEventListener('click', function() {
+                    const bookingId = this.getAttribute('data-id');
+                    openCancelModal(bookingId);
+                });
+            }
+            
+            return bookingCard;
+        }
+
+        // Format time (HH:MM) to AM/PM
+        function formatTime(timeString) {
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minutes} ${ampm}`;
+        }
+
+        // View booking details
+        function viewBookingDetails(bookingId) {
+            const modal = document.getElementById('booking-details-modal');
+            const loadingIndicator = document.getElementById('booking-details-loading');
+            const contentContainer = document.getElementById('booking-details-content');
+            
+            // Show modal
+            modal.style.display = 'block';
+            
+            // Show loading indicator
+            loadingIndicator.style.display = 'flex';
+            
+            // Clear existing content
+            while (contentContainer.firstChild) {
+                if (contentContainer.firstChild.id === 'booking-details-loading') {
+                    break;
+                }
+                contentContainer.removeChild(contentContainer.firstChild);
+            }
+            
+            // Fetch booking details from API
+            fetch(`/api/bookings/${bookingId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch booking details');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Format date and time
+                    const bookingDate = new Date(data.booking.date);
+                    const formattedDate = bookingDate.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    const formattedTime = formatTime(data.booking.time);
+                    
+                    // Determine status badge
+                    let statusBadge = '';
+                    if (data.booking.status === 'confirmed') {
+                        statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Confirmed</span>';
+                    } else if (data.booking.status === 'cancelled') {
+                        statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Cancelled</span>';
+                    } else if (data.booking.status === 'rescheduled') {
+                        statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Rescheduled</span>';
+                    } else if (data.booking.status === 'completed') {
+                        statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Completed</span>';
+                    } else {
+                        statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Pending</span>';
+                    }
+                    
+                    // Create details content
+                    const detailsContent = document.createElement('div');
+                    detailsContent.className = 'space-y-4';
+                    detailsContent.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-900">${data.booking.customer_name || 'Unknown Customer'}</h4>
+                                <p class="text-sm text-gray-500">${statusBadge}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">Booking ID</p>
+                                <p class="text-sm text-gray-500">${data.booking.id}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-2">Booking Details</h4>
+                            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Date</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">${formattedDate}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Time</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">${formattedTime}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Service Type</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">${data.booking.service_type || 'General'}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Created</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">${new Date(data.booking.created_at).toLocaleString()}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-4">
+                            <h4 class="text-md font-medium text-gray-900 mb-2">Customer Information</h4>
+                            <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Name</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">${data.booking.customer_name || 'N/A'}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Email</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">${data.booking.customer_email || 'N/A'}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                                    <dd class="mt-1 text-sm text-gray-900">${data.booking.customer_phone || 'N/A'}</dd>
+                                </div>
+                            </dl>
+                        </div>
+                        
+                        ${data.booking.notes ? `
+                            <div class="border-t border-gray-200 pt-4">
+                                <h4 class="text-md font-medium text-gray-900 mb-2">Notes</h4>
+                                <p class="text-sm text-gray-900">${data.booking.notes}</p>
+                            </div>
+                        ` : ''}
+                        
+                        ${data.booking.status === 'cancelled' && data.booking.cancellation_reason ? `
+                            <div class="border-t border-gray-200 pt-4">
+                                <h4 class="text-md font-medium text-gray-900 mb-2">Cancellation Details</h4>
+                                <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Reason</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">${data.booking.cancellation_reason}</dd>
+                                    </div>
+                                    ${data.booking.cancellation_notes ? `
+                                        <div>
+                                            <dt class="text-sm font-medium text-gray-500">Notes</dt>
+                                            <dd class="mt-1 text-sm text-gray-900">${data.booking.cancellation_notes}</dd>
+                                        </div>
+                                    ` : ''}
+                                </dl>
+                            </div>
+                        ` : ''}
+                        
+                        ${data.booking.status === 'rescheduled' && data.booking.reschedule_notes ? `
+                            <div class="border-t border-gray-200 pt-4">
+                                <h4 class="text-md font-medium text-gray-900 mb-2">Reschedule Details</h4>
+                                <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Notes</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">${data.booking.reschedule_notes}</dd>
+                                    </div>
+                                    ${data.booking.original_date && data.booking.original_time ? `
+                                        <div>
+                                            <dt class="text-sm font-medium text-gray-500">Original Date/Time</dt>
+                                            <dd class="mt-1 text-sm text-gray-900">${new Date(data.booking.original_date).toLocaleDateString()} at ${formatTime(data.booking.original_time)}</dd>
+                                        </div>
+                                    ` : ''}
+                                </dl>
+                            </div>
+                        ` : ''}
+                    `;
+                    
+                    contentContainer.appendChild(detailsContent);
+                })
+                .catch(error => {
+                    console.error('Error loading booking details:', error);
+                    
+                    // Hide loading indicator
+                    loadingIndicator.style.display = 'none';
+                    
+                    // Show error message
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'text-center py-4 text-red-500';
+                    errorMessage.innerHTML = `
+                        <i class="fas fa-exclamation-circle text-4xl mb-2"></i>
+                        <p>Error loading booking details. Please try again.</p>
+                    `;
+                    contentContainer.appendChild(errorMessage);
+                });
+        }
+
+        // Close booking details modal
+        document.getElementById('close-booking-details').addEventListener('click', function() {
+            document.getElementById('booking-details-modal').style.display = 'none';
+        });
+
+        // Open reschedule modal
+        function openRescheduleModal(bookingId) {
+            const modal = document.getElementById('reschedule-modal');
+            
+            // Set booking ID
+            document.getElementById('reschedule-booking-id').value = bookingId;
+            
+            // Reset form
+            document.getElementById('reschedule-form').reset();
+            
+            // Show modal
+            modal.style.display = 'block';
+            
+            // Add event listener to date input
+            document.getElementById('reschedule-date').addEventListener('change', function() {
+                loadAvailableTimeSlots(this.value, 'reschedule-time');
+            });
+        }
+
+        // Close reschedule modal
+        document.getElementById('cancel-reschedule').addEventListener('click', function() {
+            document.getElementById('reschedule-modal').style.display = 'none';
+        });
+
+        // Confirm reschedule
+        document.getElementById('confirm-reschedule').addEventListener('click', function() {
+            const bookingId = document.getElementById('reschedule-booking-id').value;
+            const date = document.getElementById('reschedule-date').value;
+            const time = document.getElementById('reschedule-time').value;
+            const notes = document.getElementById('reschedule-notes').value;
+            const notify = document.getElementById('reschedule-notify').checked;
+            
+            if (!date || !time) {
+                alert('Please select a date and time for rescheduling.');
+                return;
+            }
+            
+            // Send reschedule request to API
+            fetch(`/api/bookings/${bookingId}/reschedule`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    date,
+                    time,
+                    notes,
+                    notify
+                }),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to reschedule booking');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Close modal
+                    document.getElementById('reschedule-modal').style.display = 'none';
+                    
+                    // Reload bookings
+                    loadUpcomingBookings();
+                    
+                    // Show success message
+                    alert('Booking rescheduled successfully!');
+                })
+                .catch(error => {
+                    console.error('Error rescheduling booking:', error);
+                    alert('Error rescheduling booking. Please try again.');
+                });
+        });
+
+        // Open cancel modal
+        function openCancelModal(bookingId) {
+            const modal = document.getElementById('cancel-booking-modal');
+            
+            // Set booking ID
+            document.getElementById('cancel-booking-id').value = bookingId;
+            
+            // Reset form
+            document.getElementById('cancel-form').reset();
+            
+            // Show modal
+            modal.style.display = 'block';
+        }
+
+        // Close cancel modal
+        document.getElementById('cancel-cancel').addEventListener('click', function() {
+            document.getElementById('cancel-booking-modal').style.display = 'none';
+        });
+
+        // Confirm cancel
+        document.getElementById('confirm-cancel').addEventListener('click', function() {
+            const bookingId = document.getElementById('cancel-booking-id').value;
+            const reason = document.getElementById('cancel-reason').value;
+            const notes = document.getElementById('cancel-notes').value;
+            const notify = document.getElementById('cancel-notify').checked;
+            
+            // Send cancel request to API
+            fetch(`/api/bookings/${bookingId}/cancel`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    reason,
+                    notes,
+                    notify
+                }),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to cancel booking');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Close modal
+                    document.getElementById('cancel-booking-modal').style.display = 'none';
+                    
+                    // Reload bookings
+                    loadUpcomingBookings();
+                    
+                    // Show success message
+                    alert('Booking cancelled successfully!');
+                })
+                .catch(error => {
+                    console.error('Error cancelling booking:', error);
+                    alert('Error cancelling booking. Please try again.');
+                });
+        });
+
+        // Create booking form
+        document.getElementById('create-booking-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const customerName = document.getElementById('customer-name').value;
+            const customerEmail = document.getElementById('customer-email').value;
+            const customerPhone = document.getElementById('customer-phone').value;
+            const serviceType = document.getElementById('service-type').value;
+            const date = document.getElementById('booking-date').value;
+            const time = document.getElementById('booking-time').value;
+            const notes = document.getElementById('booking-notes').value;
+            const sendConfirmation = document.getElementById('send-confirmation').checked;
+            const addToCalendar = document.getElementById('add-to-calendar').checked;
+            
+            if (!customerName || !customerEmail || !date || !time) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Send create booking request to API
+            fetch('/api/bookings/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    customer_name: customerName,
+                    customer_email: customerEmail,
+                    customer_phone: customerPhone,
+                    service_type: serviceType,
+                    date,
+                    time,
+                    notes,
+                    send_confirmation: sendConfirmation,
+                    add_to_calendar: addToCalendar
+                }),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to create booking');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset form
+                    document.getElementById('create-booking-form').reset();
+                    
+                    // Switch to upcoming bookings tab
+                    document.getElementById('tab-upcoming').click();
+                    
+                    // Show success message
+                    alert('Booking created successfully!');
+                })
+                .catch(error => {
+                    console.error('Error creating booking:', error);
+                    alert('Error creating booking. Please try again.');
+                });
+        });
+
+        // Reset booking form
+        document.getElementById('reset-booking-form').addEventListener('click', function() {
+            document.getElementById('create-booking-form').reset();
+        });
+
+        // Load available time slots for a date
+        function loadAvailableTimeSlots(date, selectId) {
+            const select = document.getElementById(selectId);
+            
+            // Clear existing options
+            select.innerHTML = '<option value="">Loading time slots...</option>';
+            
+            // Fetch time slots from API
+            fetch(`/api/availability/time-slots?date=${date}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch time slots');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Clear loading option
+                    select.innerHTML = '';
+                    
+                    if (data.timeSlots.length === 0) {
+                        select.innerHTML = '<option value="">No available time slots</option>';
+                        return;
+                    }
+                    
+                    // Add available time slots
+                    data.timeSlots.forEach(slot => {
+                        if (slot.available) {
+                            const option = document.createElement('option');
+                            option.value = slot.time;
+                            option.textContent = formatTime(slot.time);
+                            select.appendChild(option);
+                        }
+                    });
+                    
+                    if (select.options.length === 0) {
+                        select.innerHTML = '<option value="">No available time slots</option>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading time slots:', error);
+                    select.innerHTML = '<option value="">Error loading time slots</option>';
+                });
+        }
+
+        // Add event listener to booking date input
+        document.getElementById('booking-date').addEventListener('change', function() {
+            loadAvailableTimeSlots(this.value, 'booking-time');
+        });
+
+        // Search and filter functionality
+        document.getElementById('search-upcoming').addEventListener('input', function() {
+            loadUpcomingBookings();
+        });
+
+        document.getElementById('filter-upcoming').addEventListener('change', function() {
+            loadUpcomingBookings();
+        });
+
+        document.getElementById('search-past').addEventListener('input', function() {
+            loadPastBookings();
+        });
+
+        document.getElementById('filter-past').addEventListener('change', function() {
+            loadPastBookings();
+        });
+
+        // Check authentication
+        function checkAuth() {
+            let isAuthenticated = false;
+            let user = null;
+            
+            // Check Google authentication
+            if (window.googleAuthManager && window.googleAuthManager.isAuthenticated()) {
+                console.log('User is authenticated with Google');
+                isAuthenticated = true;
+                user = window.googleAuthManager.getCurrentUser();
+            } 
+            // Check Sturij authentication
+            else if (window.sturijAuth && window.sturijAuth.isUserAuthenticated()) {
+                console.log('User is authenticated with Sturij Auth');
+                isAuthenticated = true;
+                user = window.sturijAuth.getCurrentUser();
+            } else {
+                // Try to get from localStorage directly
+                try {
+                    const userInfoString = localStorage.getItem('sturijUserInfo');
+                    if (userInfoString) {
+                        user = JSON.parse(userInfoString);
+                        isAuthenticated = true;
+                    }
+                } catch (error) {
+                    console.error('Error parsing user info:', error);
+                }
+            }
+            
+            if (!isAuthenticated) {
+                console.log('User is not authenticated, redirecting to auth page');
+                window.location.href = '../auth.html';
+                return;
+            }
+            
+            // Check if user is admin
+            if (!user.is_admin) {
+                console.log('User is not an admin, redirecting to customer page');
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            // Update UI with user info
+            updateUIWithUserInfo(user);
+        }
+        
+        function updateUIWithUserInfo(user) {
+            // Update admin name
+            const adminNameElement = document.getElementById('admin-name');
+            if (adminNameElement && user.name) {
+                adminNameElement.textContent = user.name;
+            }
+            
+            // Update admin email
+            const adminEmailElement = document.getElementById('admin-email');
+            if (adminEmailElement && user.email) {
+                adminEmailElement.textContent = user.email;
+            }
+            
+            // Update admin avatar
+            const adminAvatarElement = document.getElementById('admin-avatar');
+            if (adminAvatarElement) {
+                if (user.picture) {
+                    adminAvatarElement.src = user.picture;
+                } else {
+                    // Generate avatar from name
+                    const name = user.name || user.email || 'Admin';
+                    adminAvatarElement.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`;
+                }
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            checkAuth();
+            
+            // Load upcoming bookings
+            loadUpcomingBookings();
+        });
+    </script>
+</body>
+</html>

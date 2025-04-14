@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Templates - Sturij Booking System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .sidebar-item.active {
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+        }
+        .sidebar-item:hover:not(.active) {
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+        .template-card {
+            transition: all 0.2s ease;
+        }
+        .template-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .CodeMirror {
+            height: 400px;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/eclipse.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <div class="hidden md:flex md:flex-shrink-0">
+            <div class="flex flex-col w-64 bg-white border-r">
+                <div class="flex items-center justify-center h-16 px-4 border-b bg-blue-600">
+                    <h1 class="text-xl font-semibold text-white">Sturij Admin</h1>
+                </div>
+                <div class="flex flex-col flex-grow overflow-y-auto">
+                    <nav class="flex-1 px-2 py-4 space-y-1">
+                        <a href="index.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a href="availability.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="far fa-calendar-alt mr-3"></i>
+                            Availability
+                        </a>
+                        <a href="bookings.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-calendar-check mr-3"></i>
+                            Bookings
+                        </a>
+                        <a href="email-templates.html" class="flex items-center px-4 py-3 text-sm font-medium text-blue-600 rounded-md sidebar-item active">
+                            <i class="fas fa-envelope mr-3"></i>
+                            Email Templates
+                        </a>
+                        <a href="ai-assistant.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-robot mr-3"></i>
+                            AI Assistant
+                        </a>
+                        <a href="users.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-users mr-3"></i>
+                            Users
+                        </a>
+                        <a href="settings.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-cog mr-3"></i>
+                            Settings
+                        </a>
+                    </nav>
+                    <div class="p-4 border-t">
+                        <div class="flex items-center">
+                            <img id="admin-avatar" class="w-8 h-8 rounded-full mr-3" src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" alt="Admin">
+                            <div>
+                                <p id="admin-name" class="text-sm font-medium text-gray-700">Admin User</p>
+                                <p id="admin-email" class="text-xs text-gray-500">admin@example.com</p>
+                            </div>
+                        </div>
+                        <button id="sign-out-button" class="mt-3 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile sidebar -->
+        <div class="md:hidden fixed inset-0 z-40 flex" id="mobile-sidebar" style="display: none;">
+            <div class="fixed inset-0 bg-gray-600 bg-opacity-75" id="sidebar-backdrop"></div>
+            <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+                <div class="absolute top-0 right-0 -mr-12 pt-2">
+                    <button id="close-sidebar" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                        <span class="sr-only">Close sidebar</span>
+                        <i class="fas fa-times text-white"></i>
+                    </button>
+                </div>
+                <div class="flex items-center justify-center h-16 px-4 border-b bg-blue-600">
+                    <h1 class="text-xl font-semibold text-white">Sturij Admin</h1>
+                </div>
+                <div class="flex-1 h-0 overflow-y-auto">
+                    <nav class="px-2 py-4 space-y-1">
+                        <a href="index.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                        <a href="availability.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="far fa-calendar-alt mr-3"></i>
+                            Availability
+                        </a>
+                        <a href="bookings.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-calendar-check mr-3"></i>
+                            Bookings
+                        </a>
+                        <a href="email-templates.html" class="flex items-center px-4 py-3 text-sm font-medium text-blue-600 rounded-md sidebar-item active">
+                            <i class="fas fa-envelope mr-3"></i>
+                            Email Templates
+                        </a>
+                        <a href="ai-assistant.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-robot mr-3"></i>
+                            AI Assistant
+                        </a>
+                        <a href="users.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-users mr-3"></i>
+                            Users
+                        </a>
+                        <a href="settings.html" class="flex items-center px-4 py-3 text-sm font-medium text-gray-600 rounded-md sidebar-item">
+                            <i class="fas fa-cog mr-3"></i>
+                            Settings
+                        </a>
+                    </nav>
+                </div>
+                <div class="p-4 border-t">
+                    <div class="flex items-center">
+                        <img class="w-8 h-8 rounded-full mr-3" src="https://ui-avatars.com/api/?name=Admin&background=3b82f6&color=fff" alt="Admin">
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">Admin User</p>
+                            <p class="text-xs text-gray-500">admin@example.com</p>
+                        </div>
+                    </div>
+                    <button id="mobile-sign-out-button" class="mt-3 w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+            <div class="flex-shrink-0 w-14"></div>
+        </div>
+
+        <!-- Main content -->
+        <div class="flex flex-col flex-1 w-0 overflow-hidden">
+            <!-- Top navbar -->
+            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
+                <button id="open-sidebar" class="md:hidden px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                    <span class="sr-only">Open sidebar</span>
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="flex-1 px-4 flex justify-between">
+                    <div class="flex-1 flex items-center">
+                        <h1 class="text-xl font-semibold text-gray-800">Email Template Management</h1>
+                    </div>
+                    <div class="ml-4 flex items-center md:ml-6">
+                        <button class="p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            <span class="sr-only">View notifications</span>
+                            <i class="fas fa-bell"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main content area -->
+            <main class="flex-1 relative overflow-y-auto focus:outline-none">
+                <div class="py-6">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+                        <!-- Template List -->
+                        <div class="bg-white shadow overflow-hidden sm:rounded-md mb-6">
+                            <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    Email Templates
+                                </h3>
+                                <button id="create-template" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <i class="fas fa-plus mr-1"></i> Create Template
+                                </button>
+                            </div>
+                            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                                <p class="text-sm text-gray-500 mb-4">
+                                    Customize the email templates sent to customers at different stages of the booking process.
+                                </p>
+                                
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    <!-- Booking Confirmation Template -->
+                                    <div class="template-card bg-white overflow-hidden shadow rounded-lg border border-gray-200">
+                                        <div class="px-4 py-5 sm:p-6">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 bg-blue-500 rounded-md p-3">
+                                                    <i class="fas fa-check text-white"></i>
+                                                </div>
+                                                <div class="ml-5 w-0 flex-1">
+                                                    <dl>
+                                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                                            Booking Confirmation
+                                                        </dt>
+                                                        <dd>
+                                                            <div class="text-lg font-medium text-gray-900">
+                                                                Active
+                                                            </div>
+                                                        </dd>
+                                                    </dl>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4">
+                                                <p class="text-sm text-gray-500">
+                                                    Sent to customers when a booking is confirmed.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                                            <div class="text-sm">
+                                                <button class="edit-template font-medium text-blue-600 hover:text-blue-500" data-template="booking-confirmation">
+                                                    Edit template
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Booking Reminder Template -->
+                                    <div class="template-card bg-white overflow-hidden shadow rounded-lg border border-gray-200">
+                                        <div class="px-4 py-5 sm:p-6">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                                                    <i class="fas fa-bell text-white"></i>
+                                                </div>
+                                                <div class="ml-5 w-0 flex-1">
+                                                    <dl>
+                                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                                            Booking Reminder
+                                                        </dt>
+                                                        <dd>
+                                                            <div class="text-lg font-medium text-gray-900">
+                                                                Active
+                                                            </div>
+                                                        </dd>
+                                                    </dl>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4">
+                                                <p class="text-sm text-gray-500">
+                                                    Sent to customers 24 hours before their booking.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                                            <div class="text-sm">
+                                                <button class="edit-template font-medium text-blue-600 hover:text-blue-500" data-template="booking-reminder">
+                                                    Edit template
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Booking Reschedule Template -->
+                                    <div class="template-card bg-white overflow-hidden shadow rounded-lg border border-gray-200">
+                                        <div class="px-4 py-5 sm:p-6">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+                                                    <i class="fas fa-calendar-alt text-white"></i>
+                                                </div>
+                                                <div class="ml-5 w-0 flex-1">
+                                                    <dl>
+                                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                                            Booking Reschedule
+                                                        </dt>
+                                                        <dd>
+                                                            <div class="text-lg font-medium text-gray-900">
+                                                                Active
+                                                            </div>
+                                                        </dd>
+                                                    </dl>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4">
+                                                <p class="text-sm text-gray-500">
+                                                    Sent to customers when a booking is rescheduled.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                                            <div class="text-sm">
+                                                <button class="edit-template font-medium text-blue-600 hover:text-blue-500" data-template="booking-reschedule">
+                                                    Edit template
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Booking Cancellation Template -->
+                                    <div class="template-card bg-white overflow-hidden shadow rounded-lg border border-gray-200">
+                                        <div class="px-4 py-5 sm:p-6">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 bg-red-500 rounded-md p-3">
+                                                    <i class="fas fa-times text-white"></i>
+                                                </div>
+                                                <div class="ml-5 w-0 flex-1">
+                                                    <dl>
+                                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                                            Booking Cancellation
+                                                        </dt>
+                                                        <dd>
+                                                            <div class="text-lg font-medium text-gray-900">
+                                                                Active
+                                                            </div>
+                                                        </dd>
+                                                    </dl>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4">
+                                                <p class="text-sm text-gray-500">
+                                                    Sent to customers when a booking is cancelled.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                                            <div class="text-sm">
+                                                <button class="edit-template font-medium text-blue-600 hover:text-blue-500" data-template="booking-cancellation">
+                                                    Edit template
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Follow-up Template -->
+                                    <div class="template-card bg-white overflow-hidden shadow rounded-lg border border-gray-200">
+                                        <div class="px-4 py-5 sm:p-6">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 bg-green-500 rounded-md p-3">
+                                                    <i class="fas fa-comment text-white"></i>
+                                                </div>
+                                                <div class="ml-5 w-0 flex-1">
+                                                    <dl>
+                                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                                            Follow-up
+                                                        </dt>
+                                                        <dd>
+                                                            <div class="text-lg font-medium text-gray-900">
+                                                                Active
+                                                            </div>
+                                                        </dd>
+                                                    </dl>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4">
+                                                <p class="text-sm text-gray-500">
+                                                    Sent to customers after their appointment.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                                            <div class="text-sm">
+                                                <button class="edit-template font-medium text-blue-600 hover:text-blue-500" data-template="follow-up">
+                                                    Edit template
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Magic Link Template -->
+                                    <div class="template-card bg-white overflow-hidden shadow rounded-lg border border-gray-200">
+                                        <div class="px-4 py-5 sm:p-6">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 bg-purple-500 rounded-md p-3">
+                                                    <i class="fas fa-magic text-white"></i>
+                                                </div>
+                                                <div class="ml-5 w-0 flex-1">
+                                                    <dl>
+                                                        <dt class="text-sm font-medium text-gray-500 truncate">
+                                                            Magic Link
+                                                        </dt>
+                                                        <dd>
+                                                            <div class="text-lg font-medium text-gray-900">
+                                                                Active
+                                                            </div>
+                                                        </dd>
+                                                    </dl>
+                                                </div>
+                                            </div>
+                                            <div class="mt-4">
+                                                <p class="text-sm text-gray-500">
+                                                    Sent to users for passwordless login.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="bg-gray-50 px-4 py-4 sm:px-6">
+                                            <div class="text-sm">
+                                                <button class="edit-template font-medium text-blue-600 hover:text-blue-500" data-template="magic-link">
+                                                    Edit template
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Template Variables Reference -->
+                        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+                            <div class="px-4 py-5 sm:px-6">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    Template Variables Reference
+                                </h3>
+                                <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                                    Use these variables in your email templates to include dynamic content.
+                                </p>
+                            </div>
+                            <div class="border-t border-gray-200 px-4 py-5 sm:p-6">
+                                <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
+                                    <div>
+                                        <h4 class="text-md font-medium text-gray-900 mb-2">Customer Variables</h4>
+                                        <ul class="space-y-2 text-sm text-gray-600">
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{customer.name}}</code> - Customer's full name</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{customer.email}}</code> - Customer's email address</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{customer.phone}}</code> - Customer's phone number</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-md font-medium text-gray-900 mb-2">Booking Variables</h4>
+                                        <ul class="space-y-2 text-sm text-gray-600">
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{booking.id}}</code> - Booking ID</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{booking.date}}</code> - Booking date</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{booking.time}}</code> - Booking time</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{booking.service}}</code> - Service type</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{booking.status}}</code> - Booking status</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{booking.notes}}</code> - Booking notes</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-md font-medium text-gray-900 mb-2">Company Variables</h4>
+                                        <ul class="space-y-2 text-sm text-gray-600">
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{company.name}}</code> - Company name</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{company.email}}</code> - Company email</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{company.phone}}</code> - Company phone</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{company.address}}</code> - Company address</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{company.website}}</code> - Company website</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-md font-medium text-gray-900 mb-2">Link Variables</h4>
+                                        <ul class="space-y-2 text-sm text-gray-600">
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{links.reschedule}}</code> - Reschedule link</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{links.cancel}}</code> - Cancellation link</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{links.confirm}}</code> - Confirmation link</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{links.calendar}}</code> - Add to calendar link</li>
+                                            <li><code class="bg-gray-100 px-1 py-0.5 rounded">{{links.magic}}</code> - Magic link for login</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Template Editor Modal -->
+    <div id="template-editor-modal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Edit Template
+                            </h3>
+                            <div class="mt-4">
+                                <form id="template-form" class="space-y-6">
+                                    <input type="hidden" id="template-id">
+                                    <div>
+                                        <label for="template-name" class="block text-sm font-medium text-gray-700">
+                                            Template Name
+                                        </label>
+                                        <div class="mt-1">
+                                            <input type="text" id="template-name" name="template-name" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="template-subject" class="block text-sm font-medium text-gray-700">
+                                            Email Subject
+                                        </label>
+                                        <div class="mt-1">
+                                            <input type="text" id="template-subject" name="template-subject" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="template-content" class="block text-sm font-medium text-gray-700">
+                                            Email Content (HTML)
+                                        </label>
+                                        <div class="mt-1">
+                                            <textarea id="template-content" name="template-content" rows="10" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="template-active" name="template-active" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded" checked>
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="template-active" class="font-medium text-gray-700">Active</label>
+                                            <p class="text-gray-500">Enable or disable this email template.</p>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="save-template" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Save Template
+                    </button>
+                    <button id="test-template" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Send Test Email
+                    </button>
+                    <button id="cancel-template" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Template Modal -->
+    <div id="create-template-modal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="create-modal-title">
+                                Create New Template
+                            </h3>
+                            <div class="mt-4">
+                                <form id="create-template-form" class="space-y-6">
+                                    <div>
+                                        <label for="new-template-name" class="block text-sm font-medium text-gray-700">
+                                            Template Name
+                                        </label>
+                                        <div class="mt-1">
+                                            <input type="text" id="new-template-name" name="new-template-name" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="new-template-key" class="block text-sm font-medium text-gray-700">
+                                            Template Key
+                                        </label>
+                                        <div class="mt-1">
+                                            <input type="text" id="new-template-key" name="new-template-key" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+                                        <p class="mt-1 text-sm text-gray-500">
+                                            A unique identifier for this template (e.g., "welcome-email")
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label for="new-template-subject" class="block text-sm font-medium text-gray-700">
+                                            Email Subject
+                                        </label>
+                                        <div class="mt-1">
+                                            <input type="text" id="new-template-subject" name="new-template-subject" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="new-template-description" class="block text-sm font-medium text-gray-700">
+                                            Description
+                                        </label>
+                                        <div class="mt-1">
+                                            <textarea id="new-template-description" name="new-template-description" rows="3" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="confirm-create-template" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Create Template
+                    </button>
+                    <button id="cancel-create-template" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Email Modal -->
+    <div id="test-email-modal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+                <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="test-modal-title">
+                                Send Test Email
+                            </h3>
+                            <div class="mt-4">
+                                <form id="test-email-form" class="space-y-6">
+                                    <div>
+                                        <label for="test-email" class="block text-sm font-medium text-gray-700">
+                                            Recipient Email
+                                        </label>
+                                        <div class="mt-1">
+                                            <input type="email" id="test-email" name="test-email" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="test-name" class="block text-sm font-medium text-gray-700">
+                                            Recipient Name
+                                        </label>
+                                        <div class="mt-1">
+                                            <input type="text" id="test-name" name="test-name" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start">
+                                        <div class="flex items-center h-5">
+                                            <input id="use-test-data" name="use-test-data" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded" checked>
+                                        </div>
+                                        <div class="ml-3 text-sm">
+                                            <label for="use-test-data" class="font-medium text-gray-700">Use sample data</label>
+                                            <p class="text-gray-500">Use sample booking data to populate template variables.</p>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="send-test-email" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Send Test
+                    </button>
+                    <button id="cancel-test-email" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../google-auth-integration.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+    <script>
+        // Mobile sidebar toggle
+        document.getElementById('open-sidebar').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').style.display = 'flex';
+        });
+
+        document.getElementById('close-sidebar').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').style.display = 'none';
+        });
+
+        document.getElementById('sidebar-backdrop').addEventListener('click', function() {
+            document.getElementById('mobile-sidebar').style.display = 'none';
+        });
+
+        // Sign out functionality
+        document.getElementById('sign-out-button').addEventListener('click', function() {
+            if (window.googleAuthManager) {
+                window.googleAuthManager.signOut();
+            } else {
+                // Fallback if Google Auth Manager is not available
+                localStorage.removeItem('sturijUserInfo');
+                window.location.href = '../auth.html';
+            }
+        });
+
+        document.getElementById('mobile-sign-out-button').addEventListener('click', function() {
+            if (window.googleAuthManager) {
+                window.googleAuthManager.signOut();
+            } else {
+                // Fallback if Google Auth Manager is not available
+                localStorage.removeItem('sturijUserInfo');
+                window.location.href = '../auth.html';
+            }
+        });
+
+        // Template data
+        const templates = {
+            'booking-confirmation': {
+                name: 'Booking Confirmation',
+                subject: 'Your booking confirmation - {{booking.id}}',
+                content: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #3b82f6;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .details {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Booking Confirmation</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{customer.name}},</p>
+            
+            <p>Your booking has been confirmed. Here are the details:</p>
+            
+            <div class="details">
+                <p><strong>Booking ID:</strong> {{booking.id}}</p>
+                <p><strong>Date:</strong> {{booking.date}}</p>
+                <p><strong>Time:</strong> {{booking.time}}</p>
+                <p><strong>Service:</strong> {{booking.service}}</p>
+            </div>
+            
+            <p>If you need to make any changes to your booking, please use the links below:</p>
+            
+            <p>
+                <a href="{{links.reschedule}}" class="button">Reschedule</a>
+                <a href="{{links.cancel}}" class="button" style="background-color: #ef4444;">Cancel</a>
+                <a href="{{links.calendar}}" class="button" style="background-color: #10b981;">Add to Calendar</a>
+            </p>
+            
+            <p>We look forward to seeing you!</p>
+            
+            <p>Best regards,<br>{{company.name}} Team</p>
+        </div>
+        <div class="footer">
+            <p>{{company.name}} | {{company.address}} | {{company.phone}}</p>
+            <p>If you have any questions, please contact us at {{company.email}}</p>
+        </div>
+    </div>
+</body>
+</html>`,
+                active: true
+            },
+            'booking-reminder': {
+                name: 'Booking Reminder',
+                subject: 'Reminder: Your appointment tomorrow',
+                content: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Reminder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f59e0b;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .details {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Appointment Reminder</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{customer.name}},</p>
+            
+            <p>This is a friendly reminder about your appointment tomorrow:</p>
+            
+            <div class="details">
+                <p><strong>Date:</strong> {{booking.date}}</p>
+                <p><strong>Time:</strong> {{booking.time}}</p>
+                <p><strong>Service:</strong> {{booking.service}}</p>
+            </div>
+            
+            <p>If you need to make any changes to your booking, please use the links below:</p>
+            
+            <p>
+                <a href="{{links.reschedule}}" class="button">Reschedule</a>
+                <a href="{{links.cancel}}" class="button" style="background-color: #ef4444;">Cancel</a>
+            </p>
+            
+            <p>We look forward to seeing you tomorrow!</p>
+            
+            <p>Best regards,<br>{{company.name}} Team</p>
+        </div>
+        <div class="footer">
+            <p>{{company.name}} | {{company.address}} | {{company.phone}}</p>
+            <p>If you have any questions, please contact us at {{company.email}}</p>
+        </div>
+    </div>
+</body>
+</html>`,
+                active: true
+            },
+            'booking-reschedule': {
+                name: 'Booking Reschedule',
+                subject: 'Your booking has been rescheduled',
+                content: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Rescheduled</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #6366f1;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .details {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Booking Rescheduled</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{customer.name}},</p>
+            
+            <p>Your booking has been rescheduled. Here are the new details:</p>
+            
+            <div class="details">
+                <p><strong>Booking ID:</strong> {{booking.id}}</p>
+                <p><strong>New Date:</strong> {{booking.date}}</p>
+                <p><strong>New Time:</strong> {{booking.time}}</p>
+                <p><strong>Service:</strong> {{booking.service}}</p>
+            </div>
+            
+            <p>If you need to make any further changes to your booking, please use the links below:</p>
+            
+            <p>
+                <a href="{{links.reschedule}}" class="button">Reschedule Again</a>
+                <a href="{{links.cancel}}" class="button" style="background-color: #ef4444;">Cancel</a>
+                <a href="{{links.calendar}}" class="button" style="background-color: #10b981;">Update Calendar</a>
+            </p>
+            
+            <p>We look forward to seeing you at your new appointment time!</p>
+            
+            <p>Best regards,<br>{{company.name}} Team</p>
+        </div>
+        <div class="footer">
+            <p>{{company.name}} | {{company.address}} | {{company.phone}}</p>
+            <p>If you have any questions, please contact us at {{company.email}}</p>
+        </div>
+    </div>
+</body>
+</html>`,
+                active: true
+            },
+            'booking-cancellation': {
+                name: 'Booking Cancellation',
+                subject: 'Your booking has been cancelled',
+                content: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Cancelled</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #ef4444;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .details {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Booking Cancelled</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{customer.name}},</p>
+            
+            <p>Your booking has been cancelled as requested. Here are the details of the cancelled booking:</p>
+            
+            <div class="details">
+                <p><strong>Booking ID:</strong> {{booking.id}}</p>
+                <p><strong>Date:</strong> {{booking.date}}</p>
+                <p><strong>Time:</strong> {{booking.time}}</p>
+                <p><strong>Service:</strong> {{booking.service}}</p>
+            </div>
+            
+            <p>If you would like to book another appointment, please click the button below:</p>
+            
+            <p>
+                <a href="{{company.website}}/book" class="button">Book New Appointment</a>
+            </p>
+            
+            <p>We hope to see you again soon!</p>
+            
+            <p>Best regards,<br>{{company.name}} Team</p>
+        </div>
+        <div class="footer">
+            <p>{{company.name}} | {{company.address}} | {{company.phone}}</p>
+            <p>If you have any questions, please contact us at {{company.email}}</p>
+        </div>
+    </div>
+</body>
+</html>`,
+                active: true
+            },
+            'follow-up': {
+                name: 'Follow-up Email',
+                subject: 'How was your appointment?',
+                content: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Follow-up</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #10b981;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .details {
+            background-color: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>How Was Your Appointment?</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{customer.name}},</p>
+            
+            <p>Thank you for your recent appointment with us. We hope everything went well!</p>
+            
+            <div class="details">
+                <p><strong>Date:</strong> {{booking.date}}</p>
+                <p><strong>Service:</strong> {{booking.service}}</p>
+            </div>
+            
+            <p>We'd love to hear your feedback. Please take a moment to let us know how we did:</p>
+            
+            <p>
+                <a href="{{company.website}}/feedback?booking={{booking.id}}" class="button">Leave Feedback</a>
+            </p>
+            
+            <p>If you'd like to book another appointment, you can do so by clicking the button below:</p>
+            
+            <p>
+                <a href="{{company.website}}/book" class="button" style="background-color: #10b981;">Book Again</a>
+            </p>
+            
+            <p>Thank you for choosing us!</p>
+            
+            <p>Best regards,<br>{{company.name}} Team</p>
+        </div>
+        <div class="footer">
+            <p>{{company.name}} | {{company.address}} | {{company.phone}}</p>
+            <p>If you have any questions, please contact us at {{company.email}}</p>
+        </div>
+    </div>
+</body>
+</html>`,
+                active: true
+            },
+            'magic-link': {
+                name: 'Magic Link Email',
+                subject: 'Your login link for {{company.name}}',
+                content: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Link</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #8b5cf6;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        .button {
+            display: inline-block;
+            background-color: #8b5cf6;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .note {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Your Login Link</h1>
+        </div>
+        <div class="content">
+            <p>Hello,</p>
+            
+            <p>You requested a login link for {{company.name}}. Click the button below to log in:</p>
+            
+            <p style="text-align: center;">
+                <a href="{{links.magic}}" class="button">Log In</a>
+            </p>
+            
+            <div class="note">
+                <p><strong>Note:</strong> This link will expire in 10 minutes and can only be used once.</p>
+                <p>If you didn't request this link, you can safely ignore this email.</p>
+            </div>
+            
+            <p>Best regards,<br>{{company.name}} Team</p>
+        </div>
+        <div class="footer">
+            <p>{{company.name}} | {{company.address}} | {{company.phone}}</p>
+            <p>If you have any questions, please contact us at {{company.email}}</p>
+        </div>
+    </div>
+</body>
+</html>`,
+                active: true
+            }
+        };
+
+        // Sample data for testing
+        const sampleData = {
+            customer: {
+                name: 'John Doe',
+                email: 'john.doe@example.com',
+                phone: '+1 (555) 123-4567'
+            },
+            booking: {
+                id: 'BK-12345',
+                date: '2025-04-20',
+                time: '10:00 AM',
+                service: 'Consultation',
+                status: 'confirmed',
+                notes: 'First-time customer'
+            },
+            company: {
+                name: 'Sturij',
+                email: 'contact@sturij.com',
+                phone: '+1 (555) 987-6543',
+                address: '123 Main St, City, Country',
+                website: 'https://sturij.com'
+            },
+            links: {
+                reschedule: 'https://sturij.com/reschedule/BK-12345',
+                cancel: 'https://sturij.com/cancel/BK-12345',
+                confirm: 'https://sturij.com/confirm/BK-12345',
+                calendar: 'https://sturij.com/calendar/BK-12345',
+                magic: 'https://sturij.com/auth/magic-link?token=abc123'
+            }
+        };
+
+        // CodeMirror instance
+        let editor;
+
+        // Edit template
+        document.querySelectorAll('.edit-template').forEach(button => {
+            button.addEventListener('click', function() {
+                const templateKey = this.getAttribute('data-template');
+                const template = templates[templateKey];
+                
+                if (!template) {
+                    alert('Template not found');
+                    return;
+                }
+                
+                document.getElementById('template-id').value = templateKey;
+                document.getElementById('template-name').value = template.name;
+                document.getElementById('template-subject').value = template.subject;
+                document.getElementById('template-content').value = template.content;
+                document.getElementById('template-active').checked = template.active;
+                
+                // Initialize CodeMirror if not already initialized
+                if (!editor) {
+                    editor = CodeMirror.fromTextArea(document.getElementById('template-content'), {
+                        mode: 'htmlmixed',
+                        theme: 'eclipse',
+                        lineNumbers: true,
+                        lineWrapping: true
+                    });
+                } else {
+                    editor.setValue(template.content);
+                }
+                
+                document.getElementById('modal-title').textContent = `Edit ${template.name} Template`;
+                document.getElementById('template-editor-modal').style.display = 'block';
+            });
+        });
+
+        // Close template editor modal
+        document.getElementById('cancel-template').addEventListener('click', function() {
+            document.getElementById('template-editor-modal').style.display = 'none';
+        });
+
+        // Save template
+        document.getElementById('save-template').addEventListener('click', function() {
+            const templateId = document.getElementById('template-id').value;
+            const templateName = document.getElementById('template-name').value;
+            const templateSubject = document.getElementById('template-subject').value;
+            const templateContent = editor ? editor.getValue() : document.getElementById('template-content').value;
+            const templateActive = document.getElementById('template-active').checked;
+            
+            if (!templateId || !templateName || !templateSubject || !templateContent) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Update template in our local storage
+            templates[templateId] = {
+                name: templateName,
+                subject: templateSubject,
+                content: templateContent,
+                active: templateActive
+            };
+            
+            // In a real implementation, this would send the data to your API
+            // For now, we'll just show a success message
+            alert('Template saved successfully!');
+            
+            // Close modal
+            document.getElementById('template-editor-modal').style.display = 'none';
+            
+            // Store in localStorage for demo purposes
+            localStorage.setItem('emailTemplates', JSON.stringify(templates));
+        });
+
+        // Test template
+        document.getElementById('test-template').addEventListener('click', function() {
+            const templateId = document.getElementById('template-id').value;
+            const template = templates[templateId];
+            
+            if (!template) {
+                alert('Template not found');
+                return;
+            }
+            
+            // Set template name in test modal
+            document.getElementById('test-modal-title').textContent = `Send Test: ${template.name}`;
+            
+            // Pre-fill admin email if available
+            const adminEmail = document.getElementById('admin-email').textContent;
+            if (adminEmail) {
+                document.getElementById('test-email').value = adminEmail;
+            }
+            
+            // Pre-fill admin name if available
+            const adminName = document.getElementById('admin-name').textContent;
+            if (adminName) {
+                document.getElementById('test-name').value = adminName;
+            }
+            
+            // Show test email modal
+            document.getElementById('test-email-modal').style.display = 'block';
+            
+            // Hide template editor modal
+            document.getElementById('template-editor-modal').style.display = 'none';
+        });
+
+        // Close test email modal
+        document.getElementById('cancel-test-email').addEventListener('click', function() {
+            document.getElementById('test-email-modal').style.display = 'none';
+            
+            // Show template editor modal again
+            document.getElementById('template-editor-modal').style.display = 'block';
+        });
+
+        // Send test email
+        document.getElementById('send-test-email').addEventListener('click', function() {
+            const templateId = document.getElementById('template-id').value;
+            const recipientEmail = document.getElementById('test-email').value;
+            const recipientName = document.getElementById('test-name').value;
+            const useTestData = document.getElementById('use-test-data').checked;
+            
+            if (!templateId || !recipientEmail) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // In a real implementation, this would send the test email via your API
+            // For now, we'll just show a success message
+            alert(`Test email sent to ${recipientEmail}`);
+            
+            // Close modal
+            document.getElementById('test-email-modal').style.display = 'none';
+            
+            // Show template editor modal again
+            document.getElementById('template-editor-modal').style.display = 'block';
+        });
+
+        // Create template
+        document.getElementById('create-template').addEventListener('click', function() {
+            // Reset form
+            document.getElementById('create-template-form').reset();
+            
+            // Show create template modal
+            document.getElementById('create-template-modal').style.display = 'block';
+        });
+
+        // Close create template modal
+        document.getElementById('cancel-create-template').addEventListener('click', function() {
+            document.getElementById('create-template-modal').style.display = 'none';
+        });
+
+        // Confirm create template
+        document.getElementById('confirm-create-template').addEventListener('click', function() {
+            const templateName = document.getElementById('new-template-name').value;
+            const templateKey = document.getElementById('new-template-key').value;
+            const templateSubject = document.getElementById('new-template-subject').value;
+            const templateDescription = document.getElementById('new-template-description').value;
+            
+            if (!templateName || !templateKey || !templateSubject) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Check if template key already exists
+            if (templates[templateKey]) {
+                alert('Template key already exists. Please choose a different key.');
+                return;
+            }
+            
+            // Create new template
+            templates[templateKey] = {
+                name: templateName,
+                subject: templateSubject,
+                content: `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${templateName}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #3b82f6;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>${templateName}</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{customer.name}},</p>
+            
+            <p>${templateDescription || 'Your email content goes here.'}</p>
+            
+            <p>Best regards,<br>{{company.name}} Team</p>
+        </div>
+        <div class="footer">
+            <p>{{company.name}} | {{company.address}} | {{company.phone}}</p>
+            <p>If you have any questions, please contact us at {{company.email}}</p>
+        </div>
+    </div>
+</body>
+</html>`,
+                active: true
+            };
+            
+            // In a real implementation, this would send the data to your API
+            // For now, we'll just show a success message
+            alert('Template created successfully!');
+            
+            // Close modal
+            document.getElementById('create-template-modal').style.display = 'none';
+            
+            // Store in localStorage for demo purposes
+            localStorage.setItem('emailTemplates', JSON.stringify(templates));
+            
+            // Reload page to show new template
+            location.reload();
+        });
+
+        // Check authentication
+        function checkAuth() {
+            let isAuthenticated = false;
+            let user = null;
+            
+            // Check Google authentication
+            if (window.googleAuthManager && window.googleAuthManager.isAuthenticated()) {
+                console.log('User is authenticated with Google');
+                isAuthenticated = true;
+                user = window.googleAuthManager.getCurrentUser();
+            } 
+            // Check Sturij authentication
+            else if (window.sturijAuth && window.sturijAuth.isUserAuthenticated()) {
+                console.log('User is authenticated with Sturij Auth');
+                isAuthenticated = true;
+                user = window.sturijAuth.getCurrentUser();
+            } else {
+                // Try to get from localStorage directly
+                try {
+                    const userInfoString = localStorage.getItem('sturijUserInfo');
+                    if (userInfoString) {
+                        user = JSON.parse(userInfoString);
+                        isAuthenticated = true;
+                    }
+                } catch (error) {
+                    console.error('Error parsing user info:', error);
+                }
+            }
+            
+            if (!isAuthenticated) {
+                console.log('User is not authenticated, redirecting to auth page');
+                window.location.href = '../auth.html';
+                return;
+            }
+            
+            // Check if user is admin
+            if (!user.is_admin) {
+                console.log('User is not an admin, redirecting to customer page');
+                window.location.href = '../index.html';
+                return;
+            }
+            
+            // Update UI with user info
+            updateUIWithUserInfo(user);
+        }
+        
+        function updateUIWithUserInfo(user) {
+            // Update admin name
+            const adminNameElement = document.getElementById('admin-name');
+            if (adminNameElement && user.name) {
+                adminNameElement.textContent = user.name;
+            }
+            
+            // Update admin email
+            const adminEmailElement = document.getElementById('admin-email');
+            if (adminEmailElement && user.email) {
+                adminEmailElement.textContent = user.email;
+            }
+            
+            // Update admin avatar
+            const adminAvatarElement = document.getElementById('admin-avatar');
+            if (adminAvatarElement) {
+                if (user.picture) {
+                    adminAvatarElement.src = user.picture;
+                } else {
+                    // Generate avatar from name
+                    const name = user.name || user.email || 'Admin';
+                    adminAvatarElement.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`;
+                }
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            checkAuth();
+            
+            // Load templates from localStorage if available
+            try {
+                const storedTemplates = localStorage.getItem('emailTemplates');
+                if (storedTemplates) {
+                    const parsedTemplates = JSON.parse(storedTemplates);
+                    Object.keys(parsedTemplates).forEach(key => {
+                        templates[key] = parsedTemplates[key];
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+            }
+        });
+    </script>
+</body>
+</html>
