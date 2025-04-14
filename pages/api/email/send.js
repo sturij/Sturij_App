@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 import Handlebars from 'handlebars';
+import emailTemplates from '../../../lib/emailTemplates';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -20,53 +21,26 @@ const emailConfig = {
   from: process.env.EMAIL_FROM || 'noreply@sturij.com'
 };
 
-// Default email templates
-const defaultTemplates = {
-  'booking-confirmation': {
-    name: 'Booking Confirmation',
-    subject: 'Your booking confirmation - {{booking.id}}',
-    content: `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Booking Confirmation</title>
-</head>
-<body>
-    <h1>Booking Confirmation</h1>
-    <p>Hello {{customer.name}},</p>
-    <p>Your booking has been confirmed. Here are the details:</p>
-    <p><strong>Booking ID:</strong> {{booking.id}}</p>
-    <p><strong>Date:</strong> {{booking.date}}</p>
-    <p><strong>Time:</strong> {{booking.time}}</p>
-    <p><strong>Service:</strong> {{booking.service}}</p>
-    <p>We look forward to seeing you!</p>
-    <p>Best regards,<br>{{company.name}} Team</p>
-</body>
-</html>`
-  },
-  // Other templates...
-};
-
 export default async function handler(req, res) {
   // Check authentication
   const { data: { session }, error: authError } = await supabase.auth.getSession();
-
+  
   if (authError || !session) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
+  
   // Only allow POST method
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+  
   try {
     const { templateKey, recipient, data, testMode } = req.body;
-
+    
     if (!templateKey || !recipient || !recipient.email) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-
+    
     // Get template from database
     let { data: templateData, error: templateError } = await supabase
       .from('email_templates')
@@ -74,25 +48,25 @@ export default async function handler(req, res) {
       .eq('key', templateKey)
       .eq('active', true)
       .single();
-
+    
     // Use template from database or default template
     let templateToUse;
-
+    
     if (templateError) {
       // If template not found in database, try to use default templates
-      if (!defaultTemplates[templateKey]) {
+      if (!emailTemplates[templateKey]) {
         return res.status(404).json({ error: 'Template not found' });
       }
-
-      templateToUse = defaultTemplates[templateKey];
+      
+      templateToUse = emailTemplates[templateKey];
     } else {
       templateToUse = templateData;
     }
-
+    
     // Compile template with Handlebars
     const compiledSubject = Handlebars.compile(templateToUse.subject);
     const compiledContent = Handlebars.compile(templateToUse.content);
-
+    
     // Prepare data for template
     const templateDataForRendering = {
       customer: {
@@ -110,11 +84,11 @@ export default async function handler(req, res) {
       },
       links: data?.links || {}
     };
-
+    
     // Render email subject and content
-    const subject = compiledSubject(templateDataForRendering) ;
+    const subject = compiledSubject(templateDataForRendering);
     const html = compiledContent(templateDataForRendering);
-
+    
     // Create email transport
     const transporter = nodemailer.createTransport({
       host: emailConfig.host,
@@ -122,7 +96,7 @@ export default async function handler(req, res) {
       secure: emailConfig.secure,
       auth: emailConfig.auth
     });
-
+    
     // If in test mode, just return the rendered email
     if (testMode) {
       return res.status(200).json({
@@ -135,7 +109,7 @@ export default async function handler(req, res) {
         }
       });
     }
-
+    
     // Send email
     const info = await transporter.sendMail({
       from: `"${process.env.COMPANY_NAME || 'Sturij'}" <${emailConfig.from}>`,
@@ -143,7 +117,7 @@ export default async function handler(req, res) {
       subject,
       html
     });
-
+    
     // Log email sending in database
     await supabase
       .from('email_logs')
@@ -159,7 +133,7 @@ export default async function handler(req, res) {
           sent_by: session.user.id
         }
       ]);
-
+    
     return res.status(200).json({
       success: true,
       messageId: info.messageId
