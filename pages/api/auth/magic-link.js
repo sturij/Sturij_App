@@ -49,7 +49,7 @@ export default async function handler(req, res) {
     }
     
     // Get magic link template
-    const template = emailTemplates['magic-link'];
+    const template = emailTemplates.generateMagicLinkEmail(data.properties.action_link);
     
     if (!template) {
       return res.status(404).json({ error: 'Email template not found' });
