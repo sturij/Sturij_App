@@ -5,69 +5,82 @@ import { supabase } from '../../lib/supabaseClient';
 
 export default function AuthCallback() {
   const router = useRouter();
-  const [message, setMessage] = useState('Processing your login...');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // User has been signed in, redirect to dashboard or home page
-        router.push('/dashboard');
-      }
-    });
+    // Only run once the router is ready and we have the query parameters
+    if (!router.isReady) return;
 
-    // Handle the initial session
-    const handleInitialSession = async () => {
+    const { code } = router.query;
+
+    if (!code) {
+      setError('No authorization code found');
+      setLoading(false);
+      return;
+    }
+
+    async function handleCode() {
       try {
-        const { data, error } = await supabase.auth.getSession();
-        
+        // Exchange the code for a session
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
         if (error) {
           throw error;
         }
-        
-        if (data?.session) {
-          // User is already signed in, redirect to dashboard
-          router.push('/dashboard');
-        } else {
-          // No session found, might be an error with the magic link
-          setError('No valid session found. The magic link may have expired.');
-        }
-      } catch (err) {
-        console.error('Error checking session:', err);
-        setError('An error occurred while processing your login.');
-      }
-    };
 
-    handleInitialSession();
+        // Get the redirect target from localStorage or default to dashboard
+        const redirectTo = localStorage.getItem('authRedirectTarget') || '/dashboard';
+        localStorage.removeItem('authRedirectTarget');
 
-    return () => {
-      if (authListener && authListener.subscription) {
-        authListener.subscription.unsubscribe();
+        // Redirect to the target page
+        router.push(redirectTo);
+      } catch (error) {
+        console.error('Error exchanging code for session:', error);
+        setError(error.message || 'Authentication failed');
+        setLoading(false);
       }
-    };
-  }, [router]);
+    }
+
+    handleCode();
+  }, [router.isReady, router.query, router]); // Added router to dependency array
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Completing authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <p>Authentication error: {error}</p>
+            <p className="mt-2">
+              <button 
+                onClick={() => router.push('/auth/login')}
+                className="text-indigo-600 hover:text-indigo-800"
+              >
+                Return to login
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 text-center">
-        {error ? (
-          <div className="bg-red-50 p-4 rounded-md">
-            <h2 className="text-xl font-medium text-red-800 mb-2">Login Error</h2>
-            <p className="text-red-700">{error}</p>
-            <button
-              onClick={() => router.push('/login')}
-              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              Return to Login
-            </button>
-          </div>
-        ) : (
-          <div>
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
-            <h2 className="mt-6 text-center text-xl font-medium text-gray-900">{message}</h2>
-            <p className="mt-2 text-sm text-gray-600">You'll be redirected automatically once you're logged in.</p>
-          </div>
-        )}
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Redirecting...</p>
       </div>
     </div>
   );

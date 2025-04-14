@@ -129,23 +129,23 @@ const defaultTemplates = {
 export default async function handler(req, res) {
   // Check authentication
   const { data: { session }, error: authError } = await supabase.auth.getSession();
-
+  
   if (authError || !session) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-
+  
   // Only allow POST method
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+  
   try {
     const { templateKey, recipient, data, testMode } = req.body;
-
+    
     if (!templateKey || !recipient || !recipient.email) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-
+    
     // Get template from database
     const { data: templateData, error: templateError } = await supabase
       .from('email_templates')
@@ -153,25 +153,25 @@ export default async function handler(req, res) {
       .eq('key', templateKey)
       .eq('active', true)
       .single();
-
+    
     // Use template from database or default template
     let templateToUse;
-
+    
     if (templateError) {
       // If template not found in database, try to use default templates
       if (!defaultTemplates[templateKey]) {
         return res.status(404).json({ error: 'Template not found' });
       }
-
+      
       templateToUse = defaultTemplates[templateKey];
     } else {
       templateToUse = templateData;
     }
-
+    
     // Compile template with Handlebars
     const compiledSubject = Handlebars.compile(templateToUse.subject);
     const compiledContent = Handlebars.compile(templateToUse.content);
-
+    
     // Prepare data for template
     const templateDataForRendering = {
       customer: {
@@ -189,11 +189,11 @@ export default async function handler(req, res) {
       },
       links: data?.links || {}
     };
-
+    
     // Render email subject and content
     const subject = compiledSubject(templateDataForRendering);
     const html = compiledContent(templateDataForRendering);
-
+    
     // Create email transport
     const transporter = nodemailer.createTransport({
       host: emailConfig.host,
@@ -201,7 +201,7 @@ export default async function handler(req, res) {
       secure: emailConfig.secure,
       auth: emailConfig.auth
     });
-
+    
     // If in test mode, just return the rendered email
     if (testMode) {
       return res.status(200).json({
@@ -214,7 +214,7 @@ export default async function handler(req, res) {
         }
       });
     }
-
+    
     // Send email
     const info = await transporter.sendMail({
       from: `"${process.env.COMPANY_NAME || 'Sturij'}" <${emailConfig.from}>`,
@@ -222,7 +222,7 @@ export default async function handler(req, res) {
       subject,
       html
     });
-
+    
     // Log email sending in database
     await supabase
       .from('email_logs')
@@ -238,7 +238,7 @@ export default async function handler(req, res) {
           sent_by: session.user.id
         }
       ]);
-
+    
     return res.status(200).json({
       success: true,
       messageId: info.messageId

@@ -1,31 +1,53 @@
 // pages/api/knowledge/articles.js
 import { supabase } from '../../../lib/supabaseClient';
 
+/**
+ * API endpoint for managing knowledge articles
+ * 
+ * GET: List articles with filtering and pagination
+ * POST: Create a new article (admin only)
+ */
 export default async function handler(req, res) {
-  // Handle different HTTP methods
+  // Check authentication
+  const { data: { session }, error: authError } = await supabase.auth.getSession();
+  
+  if (authError) {
+    console.error('Authentication error:', authError);
+    return res.status(500).json({ error: 'Authentication service error' });
+  }
+
   switch (req.method) {
     case 'GET':
-      return getArticles(req, res);
+      return getArticles(req, res, session);
     case 'POST':
-      return createArticle(req, res);
+      return createArticle(req, res, session);
     default:
       return res.status(405).json({ error: 'Method not allowed' });
   }
 }
 
-// Get articles with optional filtering
-async function getArticles(req, res) {
+/**
+ * Get articles with filtering and pagination
+ * 
+ * Query parameters:
+ * - category: Filter by category slug
+ * - tag: Filter by tag slug
+ * - featured: Filter featured articles (true/false)
+ * - published: Filter by published status (true/false)
+ * - search: Search term for title/content
+ * - page: Page number for pagination
+ * - limit: Number of items per page
+ */
+async function getArticles(req, res, session) {
   try {
-    const { 
-      category, 
-      tag, 
-      search, 
-      status, 
+    const {
+      category,
+      tag,
       featured,
-      page = 1, 
-      limit = 10,
-      sort_by = 'created_at',
-      sort_order = 'desc'
+      published = 'true',
+      search,
+      page = 1,
+      limit = 10
     } = req.query;
 
     // Start building the query
@@ -39,105 +61,106 @@ async function getArticles(req, res) {
 
     // Apply filters
     if (category) {
-      const categoryQuery = supabase
-        .from('knowledge_categories')
-        .select('id')
-        .eq('slug', category)
-        .single();
-
-      const { data: categoryData, error: categoryError } = await categoryQuery;
-
-      if (!categoryError && categoryData) {
-        query = query.eq('category_id', categoryData.id);
-      }
+      query = query.eq('category.slug', category);
     }
 
     if (tag) {
-      query = query.contains('tags.tag.slug', [tag]);
+      query = query.eq('tags.tag.slug', tag);
     }
 
+    if (featured) {
+      query = query.eq('is_featured', featured === 'true');
+    }
+
+    // Only admins can see unpublished articles
+    const isAdmin = session?.user ? await checkIfAdmin(session.user.id) : false;
+    if (published === 'true' || !isAdmin) {
+      query = query.eq('is_published', true);
+    } else if (published === 'false' && isAdmin) {
+      query = query.eq('is_published', false);
+    }
+
+    // Apply search if provided
     if (search) {
       query = query.or(`title.ilike.%${search}%, content.ilike.%${search}%`);
     }
 
-    if (status === 'published') {
-      query = query.eq('is_published', true);
-    } else if (status === 'draft') {
-      query = query.eq('is_published', false);
-    }
-
-    if (featured === 'true') {
-      query = query.eq('is_featured', true);
-    }
-
     // Apply pagination
-    const startIndex = (page - 1) * limit;
-    query = query.range(startIndex, startIndex + limit - 1);
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    
+    query = query
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
-    // Apply sorting
-    query = query.order(sort_by, { ascending: sort_order === 'asc' });
-
-    // Execute the query
     const { data, error, count } = await query;
 
     if (error) {
       throw error;
     }
 
-    // Get total count for pagination
-    const { count: totalCount, error: countError } = await supabase
-      .from('knowledge_articles')
-      .select('*', { count: 'exact', head: true });
-
-    if (countError) {
-      throw countError;
-    }
+    // Format the response
+    const formattedData = data.map(article => {
+      return {
+        ...article,
+        tags: article.tags.map(t => t.tag)
+      };
+    });
 
     return res.status(200).json({
-      articles: data,
+      articles: formattedData,
       pagination: {
-        total: totalCount,
         page: parseInt(page),
         limit: parseInt(limit),
-        pages: Math.ceil(totalCount / limit)
+        total: count
       }
     });
   } catch (error) {
-    console.error('Error fetching articles:', error);
-    return res.status(500).json({ error: 'Failed to fetch articles' });
+    console.error('Error getting articles:', error);
+    return res.status(500).json({ error: 'Failed to get articles' });
   }
 }
 
-// Create a new article
-async function createArticle(req, res) {
+/**
+ * Create a new article (admin only)
+ * 
+ * Required fields:
+ * - title: Article title
+ * - content: Article content
+ * - category_id: Category ID
+ * 
+ * Optional fields:
+ * - slug: Custom slug (generated from title if not provided)
+ * - excerpt: Short description
+ * - is_published: Publication status
+ * - is_featured: Featured status
+ * - meta_title: SEO title
+ * - meta_description: SEO description
+ * - tags: Array of tag IDs
+ */
+async function createArticle(req, res, session) {
+  if (!session) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   try {
     // Check if user is admin
-    const { user } = await supabase.auth.getUser(req.headers.authorization?.split(' ')[1]);
-
-    if (!user) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    const isAdmin = await checkIfAdmin(session.user.id);
+    if (!isAdmin) {
+      return res.status(403).json({ error: 'Forbidden: Admin access required' });
     }
 
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('is_admin')
-      .eq('id', user.id)
-      .single();
-
-    if (userError || !userData.is_admin) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    const { 
-      title, 
-      content, 
-      excerpt, 
-      category_id, 
-      tags, 
-      is_published = false, 
+    const {
+      title,
+      content,
+      slug,
+      excerpt,
+      category_id,
+      is_published = false,
       is_featured = false,
       meta_title,
-      meta_description
+      meta_description,
+      tags = []
     } = req.body;
 
     // Validate required fields
@@ -145,78 +168,94 @@ async function createArticle(req, res) {
       return res.status(400).json({ error: 'Title, content, and category are required' });
     }
 
-    // Create article
-    const { data: article, error: articleError } = await supabase
+    // Create the article
+    const { data: article, error } = await supabase
       .from('knowledge_articles')
       .insert([
         {
           title,
           content,
+          slug,
           excerpt,
           category_id,
           is_published,
           is_featured,
-          meta_title: meta_title || title,
-          meta_description: meta_description || excerpt,
-          created_by: user.id,
-          updated_by: user.id
+          meta_title,
+          meta_description,
+          created_by: session.user.id,
+          updated_by: session.user.id
         }
       ])
       .select()
       .single();
 
-    if (articleError) {
-      throw articleError;
+    if (error) {
+      throw error;
     }
 
     // Add tags if provided
-    if (tags && tags.length > 0) {
-      const tagInserts = [];
+    if (tags.length > 0) {
+      const tagConnections = tags.map(tag_id => ({
+        article_id: article.id,
+        tag_id
+      }));
 
-      for (const tagName of tags) {
-        // Check if tag exists
-        let { data: existingTag, error: tagError } = await supabase
-          .from('knowledge_tags')
-          .select('id')
-          .eq('name', tagName)
-          .single();
+      const { error: tagError } = await supabase
+        .from('knowledge_article_tags')
+        .insert(tagConnections);
 
-        if (tagError) {
-          // Create new tag
-          const { data: newTag, error: newTagError } = await supabase
-            .from('knowledge_tags')
-            .insert([{ name: tagName }])
-            .select()
-            .single();
+      if (tagError) {
+        console.error('Error adding tags:', tagError);
+        // Don't fail the whole request if tag association fails
+      }
+    }
 
-          if (newTagError) {
-            throw newTagError;
-          }
-
-          existingTag = newTag;
-        }
-
-        // Link tag to article
-        tagInserts.push({
+    // Create initial revision
+    const { error: revisionError } = await supabase
+      .from('knowledge_article_revisions')
+      .insert([
+        {
           article_id: article.id,
-          tag_id: existingTag.id
-        });
-      }
-
-      if (tagInserts.length > 0) {
-        const { error: linkError } = await supabase
-          .from('knowledge_article_tags')
-          .insert(tagInserts);
-
-        if (linkError) {
-          throw linkError;
+          title,
+          content,
+          excerpt,
+          revision_number: 1,
+          created_by: session.user.id
         }
-      }
+      ]);
+
+    if (revisionError) {
+      console.error('Error creating revision:', revisionError);
+      // Don't fail the whole request if revision creation fails
     }
 
     return res.status(201).json({ article });
   } catch (error) {
     console.error('Error creating article:', error);
     return res.status(500).json({ error: 'Failed to create article' });
+  }
+}
+
+/**
+ * Check if a user is an admin
+ * @param {string} userId - The user ID to check
+ * @returns {Promise<boolean>} - True if user is admin, false otherwise
+ */
+async function checkIfAdmin(userId) {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', userId)
+      .single();
+
+    if (error || !data) {
+      return false;
+    }
+
+    return data.is_admin === true;
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
   }
 }

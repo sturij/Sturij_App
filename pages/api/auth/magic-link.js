@@ -1,121 +1,100 @@
 // pages/api/auth/magic-link.js
-import { createClient } from '@supabase/supabase-js';
-import nodemailer from 'nodemailer';
-import Handlebars from 'handlebars';
-import * as emailTemplates from '../../../lib/emailTemplates';
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-
-// Email configuration
-const emailConfig = {
-  host: process.env.EMAIL_HOST || 'smtp.example.com',
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: process.env.EMAIL_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_USER || 'user@example.com',
-    pass: process.env.EMAIL_PASSWORD || 'password'
-  },
-  from: process.env.EMAIL_FROM || 'noreply@sturij.com'
-};
+import { supabase } from '../../../lib/supabaseClient';
+import { generateMagicLinkEmail } from '../../../lib/emailTemplates';
 
 export default async function handler(req, res) {
-  // Only allow POST method
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-  
+
+  const { email, redirectTo } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
   try {
-    const { email, redirectTo } = req.body;
+    // Get the site URL with fallback
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
+                   (req.headers.origin || `https://${req.headers.host}`);
     
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
+    // The redirect URL where the user will be sent after clicking the magic link
+    const emailRedirectTo = redirectTo || `${siteUrl}/auth/callback`;
     
-    // Generate magic link
-    const { data, error } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
+    console.log('Magic link redirect URL:', emailRedirectTo);
+
+    // Generate the OTP (magic link) using Supabase
+    const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        redirectTo: redirectTo || process.env.NEXT_PUBLIC_BASE_URL
-      }
+        emailRedirectTo,
+        // Disable Supabase's automatic email sending if we want to send custom emails
+        shouldCreateUser: true,
+      },
     });
-    
+
     if (error) {
       console.error('Error generating magic link:', error);
-      return res.status(500).json({ error: 'Failed to generate magic link' });
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Failed to generate magic link',
+        message: error.message 
+      });
     }
+
+    // For debugging purposes
+    console.log('Magic link generated for:', email);
     
-    // Get magic link template
-    const template = emailTemplates.generateMagicLinkEmail(data.properties.action_link);
+    // If you want to send a custom email instead of using Supabase's default,
+    // uncomment and modify the following code:
+    /*
+    // Get the actual magic link from Supabase response if available
+    // Note: Supabase doesn't expose the actual magic link in the response for security reasons
+    // This is just a placeholder for how you would integrate with your email system
     
-    if (!template) {
-      return res.status(404).json({ error: 'Email template not found' });
-    }
+    // Generate email content using your template
+    const magicLinkTemplate = generateMagicLinkEmail(
+      emailRedirectTo, // This would be the actual magic link if available
+      email.split('@')[0] // Simple way to get a username from email
+    );
     
-    // Compile template with Handlebars
-    const compiledSubject = Handlebars.compile(template.subject);
-    const compiledContent = Handlebars.compile(template.content);
-    
-    // Prepare data for template
-    const templateData = {
-      customer: {
-        email
-      },
-      company: {
-        name: process.env.COMPANY_NAME || 'Sturij',
-        email: process.env.COMPANY_EMAIL || 'contact@sturij.com',
-        phone: process.env.COMPANY_PHONE || '',
-        address: process.env.COMPANY_ADDRESS || '',
-        website: process.env.COMPANY_WEBSITE || 'https://sturij.com'
-      },
-      links: {
-        magic: data.properties.action_link
+    // Send the email using your email service
+    try {
+      const emailResponse = await fetch(`${siteUrl}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: email,
+          subject: magicLinkTemplate.subject,
+          html: magicLinkTemplate.content,
+          from: 'noreply@sturij.com'
+        }),
+      });
+      
+      if (!emailResponse.ok) {
+        const emailError = await emailResponse.json();
+        console.error('Error sending custom magic link email:', emailError);
+        // Fall back to Supabase's default email if our custom email fails
       }
-    };
-    
-    // Render email subject and content
-    const subject = compiledSubject(templateData);
-    const html = compiledContent(templateData);
-    
-    // Create email transport
-    const transporter = nodemailer.createTransport({
-      host: emailConfig.host,
-      port: emailConfig.port,
-      secure: emailConfig.secure,
-      auth: emailConfig.auth
-    });
-    
-    // Send email
-    const info = await transporter.sendMail({
-      from: `"${process.env.COMPANY_NAME || 'Sturij'}" <${emailConfig.from}>`,
-      to: email,
-      subject,
-      html
-    });
-    
-    // Log email sending in database
-    await supabase
-      .from('email_logs')
-      .insert([
-        {
-          template_key: 'magic-link',
-          recipient_email: email,
-          subject,
-          status: 'sent',
-          message_id: info.messageId,
-          sent_at: new Date().toISOString()
-        }
-      ]);
-    
-    return res.status(200).json({
+    } catch (emailError) {
+      console.error('Error sending custom magic link email:', emailError);
+      // Fall back to Supabase's default email if our custom email fails
+    }
+    */
+
+    return res.status(200).json({ 
       success: true,
-      message: 'Magic link sent successfully'
+      message: 'Magic link sent successfully. Please check your email.',
+      email: email
     });
   } catch (error) {
-    console.error('Error sending magic link:', error);
-    return res.status(500).json({ error: 'Failed to send magic link' });
+    console.error('Error in magic link API:', error);
+    return res.status(500).json({ 
+      success: false, 
+      error: 'Failed to send magic link',
+      message: error.message 
+    });
   }
 }

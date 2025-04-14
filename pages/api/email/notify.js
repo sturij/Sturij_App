@@ -7,41 +7,41 @@ export default async function handler(req, res) {
   // Check for API key if called by cron job
   const apiKey = req.headers['x-api-key'];
   let isAdmin = false;
-
+  
   if (!apiKey || apiKey !== process.env.CRON_API_KEY) {
     // If no valid API key, check for user authentication
     const { data: { session }, error: authError } = await supabase.auth.getSession();
-
+    
     if (authError || !session) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-
+    
     // Check if user is admin
     const { data: userData, error: userError } = await supabase
       .from('profiles')
       .select('is_admin')
       .eq('id', session.user.id)
       .single();
-
+    
     if (userError || !userData?.is_admin) {
       return res.status(403).json({ error: 'Forbidden: Admin access required' });
     }
-
+    
     isAdmin = true;
   }
-
+  
   // Only allow POST method
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+  
   try {
     const { type, bookingId } = req.body;
-
+    
     if (!type) {
       return res.status(400).json({ error: 'Notification type is required' });
     }
-
+    
     switch (type) {
       case 'booking-confirmation':
         return await sendBookingConfirmation(req, res, bookingId);
@@ -63,7 +63,7 @@ async function sendBookingConfirmation(req, res, bookingId) {
   if (!bookingId) {
     return res.status(400).json({ error: 'Booking ID is required' });
   }
-
+  
   try {
     // Get booking details
     const { data: booking, error: bookingError } = await supabase
@@ -71,11 +71,11 @@ async function sendBookingConfirmation(req, res, bookingId) {
       .select('*')
       .eq('id', bookingId)
       .single();
-
+    
     if (bookingError || !booking) {
       return res.status(404).json({ error: 'Booking not found' });
     }
-
+    
     // Generate links
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://sturij.com';
     const links = {
@@ -83,7 +83,7 @@ async function sendBookingConfirmation(req, res, bookingId) {
       cancel: `${baseUrl}/cancel/${booking.id}`,
       calendar: `${baseUrl}/calendar/add/${booking.id}`
     };
-
+    
     // Prepare data for email
     const emailData = {
       templateKey: 'booking-confirmation',
@@ -104,7 +104,7 @@ async function sendBookingConfirmation(req, res, bookingId) {
         links
       }
     };
-
+    
     // Send email using the email API
     const response = await fetch(`${baseUrl}/api/email/send`, {
       method: 'POST',
@@ -113,13 +113,13 @@ async function sendBookingConfirmation(req, res, bookingId) {
       },
       body: JSON.stringify(emailData)
     });
-
+    
     const result = await response.json();
-
+    
     if (!response.ok) {
       throw new Error(result.error || 'Failed to send confirmation email');
     }
-
+    
     // Update booking to mark confirmation email as sent
     await supabase
       .from('bookings')
@@ -128,7 +128,7 @@ async function sendBookingConfirmation(req, res, bookingId) {
         confirmation_sent_at: new Date().toISOString()
       })
       .eq('id', booking.id);
-
+    
     return res.status(200).json({
       success: true,
       message: 'Booking confirmation email sent',
@@ -145,7 +145,7 @@ async function sendBookingReminders(req, res) {
   try {
     // Get tomorrow's date in YYYY-MM-DD format
     const tomorrow = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-
+    
     // Get all confirmed bookings for tomorrow
     const { data: bookings, error: bookingsError } = await supabase
       .from('bookings')
@@ -153,9 +153,9 @@ async function sendBookingReminders(req, res) {
       .eq('date', tomorrow)
       .eq('status', 'confirmed')
       .eq('reminder_sent', false);
-
+    
     if (bookingsError) throw bookingsError;
-
+    
     if (!bookings || bookings.length === 0) {
       return res.status(200).json({
         success: true,
@@ -163,10 +163,10 @@ async function sendBookingReminders(req, res) {
         count: 0
       });
     }
-
+    
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://sturij.com';
     const results = [];
-
+    
     // Send reminder email for each booking
     for (const booking of bookings) {
       try {
@@ -175,7 +175,7 @@ async function sendBookingReminders(req, res) {
           reschedule: `${baseUrl}/reschedule/${booking.id}`,
           cancel: `${baseUrl}/cancel/${booking.id}`
         };
-
+        
         // Prepare data for email
         const emailData = {
           templateKey: 'booking-reminder',
@@ -196,7 +196,7 @@ async function sendBookingReminders(req, res) {
             links
           }
         };
-
+        
         // Send email using the email API
         const response = await fetch(`${baseUrl}/api/email/send`, {
           method: 'POST',
@@ -205,13 +205,13 @@ async function sendBookingReminders(req, res) {
           },
           body: JSON.stringify(emailData)
         });
-
+        
         const result = await response.json();
-
+        
         if (!response.ok) {
           throw new Error(result.error || 'Failed to send reminder email');
         }
-
+        
         // Update booking to mark reminder email as sent
         await supabase
           .from('bookings')
@@ -220,7 +220,7 @@ async function sendBookingReminders(req, res) {
             reminder_sent_at: new Date().toISOString()
           })
           .eq('id', booking.id);
-
+        
         results.push({
           booking: booking.id,
           success: true
@@ -234,7 +234,7 @@ async function sendBookingReminders(req, res) {
         });
       }
     }
-
+    
     return res.status(200).json({
       success: true,
       message: 'Booking reminders processed',
@@ -252,7 +252,7 @@ async function sendFollowUps(req, res) {
   try {
     // Get yesterday's date in YYYY-MM-DD format
     const yesterday = format(addDays(new Date(), -1), 'yyyy-MM-dd');
-
+    
     // Get all completed bookings from yesterday
     const { data: bookings, error: bookingsError } = await supabase
       .from('bookings')
@@ -260,9 +260,9 @@ async function sendFollowUps(req, res) {
       .eq('date', yesterday)
       .eq('status', 'completed')
       .eq('followup_sent', false);
-
+    
     if (bookingsError) throw bookingsError;
-
+    
     if (!bookings || bookings.length === 0) {
       return res.status(200).json({
         success: true,
@@ -270,10 +270,10 @@ async function sendFollowUps(req, res) {
         count: 0
       });
     }
-
+    
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://sturij.com';
     const results = [];
-
+    
     // Send follow-up email for each booking
     for (const booking of bookings) {
       try {
@@ -282,7 +282,7 @@ async function sendFollowUps(req, res) {
           feedback: `${baseUrl}/feedback/${booking.id}`,
           book: `${baseUrl}/book`
         };
-
+        
         // Prepare data for email
         const emailData = {
           templateKey: 'follow-up',
@@ -303,7 +303,7 @@ async function sendFollowUps(req, res) {
             links
           }
         };
-
+        
         // Send email using the email API
         const response = await fetch(`${baseUrl}/api/email/send`, {
           method: 'POST',
@@ -312,13 +312,13 @@ async function sendFollowUps(req, res) {
           },
           body: JSON.stringify(emailData)
         });
-
+        
         const result = await response.json();
-
+        
         if (!response.ok) {
           throw new Error(result.error || 'Failed to send follow-up email');
         }
-
+        
         // Update booking to mark follow-up email as sent
         await supabase
           .from('bookings')
@@ -327,7 +327,7 @@ async function sendFollowUps(req, res) {
             followup_sent_at: new Date().toISOString()
           })
           .eq('id', booking.id);
-
+        
         results.push({
           booking: booking.id,
           success: true
@@ -341,7 +341,7 @@ async function sendFollowUps(req, res) {
         });
       }
     }
-
+    
     return res.status(200).json({
       success: true,
       message: 'Follow-up emails processed',

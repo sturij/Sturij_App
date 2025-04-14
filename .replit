@@ -41,4 +41,13 @@ args = "npm run build"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run start"
+args = "NODE_ENV=production PORT=3000 HOST=0.0.0.0 npm run start"
+
+[[workflows.workflow]]
+name = "Dev Server"
+author = 39824569
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "NODE_ENV=development PORT=3000 HOST=0.0.0.0 npm run dev"
