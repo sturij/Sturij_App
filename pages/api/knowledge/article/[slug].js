@@ -1,18 +1,13 @@
 // pages/api/knowledge/article/[slug].js
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from '../../../../lib/supabaseClient';
 
 export default async function handler(req, res) {
   const { slug } = req.query;
-  
+
   if (!slug) {
     return res.status(400).json({ error: 'Article slug is required' });
   }
-  
+
   // Handle different HTTP methods
   switch (req.method) {
     case 'GET':
@@ -42,14 +37,14 @@ async function getArticle(req, res, slug) {
       `)
       .eq('slug', slug)
       .single();
-    
+
     if (error) {
       if (error.code === 'PGRST116') {
         return res.status(404).json({ error: 'Article not found' });
       }
       throw error;
     }
-    
+
     // Check if article is published or user is admin
     if (!article.is_published) {
       // Check if user is admin
@@ -57,25 +52,25 @@ async function getArticle(req, res, slug) {
       if (!authHeader) {
         return res.status(404).json({ error: 'Article not found' });
       }
-      
+
       const token = authHeader.split(' ')[1];
       const { data: { user } } = await supabase.auth.getUser(token);
-      
+
       if (!user) {
         return res.status(404).json({ error: 'Article not found' });
       }
-      
+
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('is_admin')
         .eq('id', user.id)
         .single();
-      
+
       if (userError || !userData.is_admin) {
         return res.status(404).json({ error: 'Article not found' });
       }
     }
-    
+
     // Log view if article is published
     if (article.is_published) {
       // Get user info if available
@@ -88,7 +83,7 @@ async function getArticle(req, res, slug) {
           userId = user.id;
         }
       }
-      
+
       // Log view
       await supabase
         .from('knowledge_article_views')
@@ -101,7 +96,7 @@ async function getArticle(req, res, slug) {
           }
         ]);
     }
-    
+
     return res.status(200).json({ article });
   } catch (error) {
     console.error('Error fetching article:', error);
@@ -114,35 +109,35 @@ async function updateArticle(req, res, slug) {
   try {
     // Check if user is admin
     const { user } = await supabase.auth.getUser(req.headers.authorization?.split(' ')[1]);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    
+
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('is_admin')
       .eq('id', user.id)
       .single();
-    
+
     if (userError || !userData.is_admin) {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    
+
     // Get article ID from slug
     const { data: existingArticle, error: articleError } = await supabase
       .from('knowledge_articles')
       .select('id, title, content')
       .eq('slug', slug)
       .single();
-    
+
     if (articleError) {
       if (articleError.code === 'PGRST116') {
         return res.status(404).json({ error: 'Article not found' });
       }
       throw articleError;
     }
-    
+
     const { 
       title, 
       content, 
@@ -154,7 +149,7 @@ async function updateArticle(req, res, slug) {
       meta_title,
       meta_description
     } = req.body;
-    
+
     // Create revision of current article
     await supabase
       .from('knowledge_article_revisions')
@@ -167,7 +162,7 @@ async function updateArticle(req, res, slug) {
           created_by: user.id
         }
       ]);
-    
+
     // Update article
     const { data: updatedArticle, error: updateError } = await supabase
       .from('knowledge_articles')
@@ -186,11 +181,11 @@ async function updateArticle(req, res, slug) {
       .eq('id', existingArticle.id)
       .select()
       .single();
-    
+
     if (updateError) {
       throw updateError;
     }
-    
+
     // Update tags if provided
     if (tags && Array.isArray(tags)) {
       // Remove existing tags
@@ -198,10 +193,10 @@ async function updateArticle(req, res, slug) {
         .from('knowledge_article_tags')
         .delete()
         .eq('article_id', existingArticle.id);
-      
+
       // Add new tags
       const tagInserts = [];
-      
+
       for (const tagName of tags) {
         // Check if tag exists
         let { data: existingTag, error: tagError } = await supabase
@@ -209,7 +204,7 @@ async function updateArticle(req, res, slug) {
           .select('id')
           .eq('name', tagName)
           .single();
-        
+
         if (tagError) {
           // Create new tag
           const { data: newTag, error: newTagError } = await supabase
@@ -217,32 +212,32 @@ async function updateArticle(req, res, slug) {
             .insert([{ name: tagName }])
             .select()
             .single();
-          
+
           if (newTagError) {
             throw newTagError;
           }
-          
+
           existingTag = newTag;
         }
-        
+
         // Link tag to article
         tagInserts.push({
           article_id: existingArticle.id,
           tag_id: existingTag.id
         });
       }
-      
+
       if (tagInserts.length > 0) {
         const { error: linkError } = await supabase
           .from('knowledge_article_tags')
           .insert(tagInserts);
-        
+
         if (linkError) {
           throw linkError;
         }
       }
     }
-    
+
     return res.status(200).json({ article: updatedArticle });
   } catch (error) {
     console.error('Error updating article:', error);
@@ -255,45 +250,45 @@ async function deleteArticle(req, res, slug) {
   try {
     // Check if user is admin
     const { user } = await supabase.auth.getUser(req.headers.authorization?.split(' ')[1]);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    
+
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('is_admin')
       .eq('id', user.id)
       .single();
-    
+
     if (userError || !userData.is_admin) {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    
+
     // Get article ID from slug
     const { data: article, error: articleError } = await supabase
       .from('knowledge_articles')
       .select('id')
       .eq('slug', slug)
       .single();
-    
+
     if (articleError) {
       if (articleError.code === 'PGRST116') {
         return res.status(404).json({ error: 'Article not found' });
       }
       throw articleError;
     }
-    
+
     // Delete article
     const { error: deleteError } = await supabase
       .from('knowledge_articles')
       .delete()
       .eq('id', article.id);
-    
+
     if (deleteError) {
       throw deleteError;
     }
-    
+
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('Error deleting article:', error);

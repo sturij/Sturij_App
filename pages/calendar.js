@@ -20,16 +20,16 @@ export default function Calendar() {
     const checkAuth = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) throw error;
-        
+
         if (!session) {
           // Not authenticated, redirect to login
           localStorage.setItem('authRedirectTarget', '/calendar');
           router.push('/login');
           return;
         }
-        
+
         // User is authenticated, get user info
         setUser(session.user);
       } catch (error) {
@@ -38,7 +38,7 @@ export default function Calendar() {
         setLoading(false);
       }
     };
-    
+
     checkAuth();
   }, [router]);
 
@@ -54,18 +54,18 @@ export default function Calendar() {
     try {
       const year = month.getFullYear();
       const monthNum = month.getMonth() + 1;
-      
+
       const response = await fetch(`/api/availability/dates?year=${year}&month=${monthNum}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch available dates');
       }
-      
+
       const data = await response.json();
-      
+
       // Convert string dates to Date objects
       const availableDateObjects = data.availableDates.map(dateStr => parseISO(dateStr));
-      
+
       setAvailableDates(availableDateObjects);
     } catch (error) {
       console.error('Error fetching available dates:', error);
@@ -77,16 +77,16 @@ export default function Calendar() {
   const fetchTimeSlots = async (date) => {
     try {
       setTimeSlots([]);
-      
+
       const dateStr = format(date, 'yyyy-MM-dd');
       const response = await fetch(`/api/availability/time-slots?date=${dateStr}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch time slots');
       }
-      
+
       const data = await response.json();
-      
+
       setTimeSlots(data.timeSlots);
     } catch (error) {
       console.error('Error fetching time slots:', error);
@@ -97,15 +97,15 @@ export default function Calendar() {
   // Handle booking submission
   const handleBookingSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedDate || !selectedTimeSlot) {
       alert('Please select a date and time slot');
       return;
     }
-    
+
     try {
       const dateStr = format(selectedDate, 'yyyy-MM-dd');
-      
+
       const response = await fetch('/api/bookings/create', {
         method: 'POST',
         headers: {
@@ -118,14 +118,14 @@ export default function Calendar() {
           notes: '' // You can add a form field for this
         }),
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create booking');
       }
-      
+
       const data = await response.json();
-      
+
       // Redirect to booking confirmation page
       router.push(`/booking-confirmation?id=${data.booking.id}`);
     } catch (error) {
@@ -148,11 +148,11 @@ export default function Calendar() {
         <title>Calendar Booking | Sturij</title>
         <meta name="description" content="Book your appointment with Sturij" />
       </Head>
-      
+
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <h1 className="text-3xl font-bold text-gray-900">Calendar Booking</h1>
-          
+
           {user && (
             <div className="mt-4 bg-white shadow overflow-hidden sm:rounded-lg">
               <div className="px-4 py-5 sm:px-6">
@@ -163,7 +163,7 @@ export default function Calendar() {
                   Select a date and time for your appointment.
                 </p>
               </div>
-              
+
               <div className="border-t border-gray-200">
                 <div className="px-4 py-5 sm:p-6">
                   {/* Calendar implementation coming soon... */}

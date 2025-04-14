@@ -1,11 +1,6 @@
 // pages/api/calendar/auth.js
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../../../lib/supabaseClient';
 import { google } from 'googleapis';
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Google OAuth2 configuration
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
@@ -27,18 +22,18 @@ async function handleAuthRequest(req, res) {
   try {
     // Check authentication
     const { data: { session }, error: authError } = await supabase.auth.getSession();
-    
+
     if (authError || !session) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    
+
     // Create OAuth2 client
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
       process.env.GOOGLE_REDIRECT_URI
     );
-    
+
     // Generate authorization URL
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
@@ -46,7 +41,7 @@ async function handleAuthRequest(req, res) {
       prompt: 'consent', // Force to get refresh token
       state: session.user.id // Pass user ID as state parameter
     });
-    
+
     return res.status(200).json({ authUrl });
   } catch (error) {
     console.error('Error generating auth URL:', error);
@@ -58,21 +53,21 @@ async function handleAuthRequest(req, res) {
 async function handleAuthCallback(req, res) {
   try {
     const { code, state } = req.body;
-    
+
     if (!code || !state) {
       return res.status(400).json({ error: 'Missing required parameters' });
     }
-    
+
     // Create OAuth2 client
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
       process.env.GOOGLE_REDIRECT_URI
     );
-    
+
     // Exchange authorization code for tokens
     const { tokens } = await oauth2Client.getToken(code);
-    
+
     // Save tokens to database
     const { data, error } = await supabase
       .from('google_calendar_credentials')
@@ -89,9 +84,9 @@ async function handleAuthCallback(req, res) {
       ])
       .select()
       .single();
-    
+
     if (error) throw error;
-    
+
     return res.status(200).json({
       success: true,
       message: 'Google Calendar connected successfully'

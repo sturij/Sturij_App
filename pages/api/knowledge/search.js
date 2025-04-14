@@ -1,10 +1,5 @@
 // pages/api/knowledge/search.js
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from '../../../lib/supabaseClient';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -13,11 +8,11 @@ export default async function handler(req, res) {
 
   try {
     const { query, limit = 10 } = req.query;
-    
+
     if (!query || query.trim() === '') {
       return res.status(400).json({ error: 'Search query is required' });
     }
-    
+
     // Search in articles
     const { data: articles, error: articlesError } = await supabase
       .from('knowledge_articles')
@@ -33,11 +28,11 @@ export default async function handler(req, res) {
       .eq('is_published', true)
       .order('view_count', { ascending: false })
       .limit(limit);
-    
+
     if (articlesError) {
       throw articlesError;
     }
-    
+
     // Search in categories
     const { data: categories, error: categoriesError } = await supabase
       .from('knowledge_categories')
@@ -50,11 +45,11 @@ export default async function handler(req, res) {
       .or(`name.ilike.%${query}%,description.ilike.%${query}%`)
       .eq('is_active', true)
       .limit(5);
-    
+
     if (categoriesError) {
       throw categoriesError;
     }
-    
+
     // Search in tags
     const { data: tags, error: tagsError } = await supabase
       .from('knowledge_tags')
@@ -65,11 +60,11 @@ export default async function handler(req, res) {
       `)
       .ilike('name', `%${query}%`)
       .limit(5);
-    
+
     if (tagsError) {
       throw tagsError;
     }
-    
+
     // Log search query for analytics
     await supabase
       .from('knowledge_search_logs')
@@ -81,7 +76,7 @@ export default async function handler(req, res) {
           ip_address: req.headers['x-forwarded-for'] || req.socket.remoteAddress
         }
       ]);
-    
+
     return res.status(200).json({
       results: {
         articles,

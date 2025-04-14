@@ -1,10 +1,5 @@
 // pages/api/knowledge/tags.js
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from '../../../lib/supabaseClient';
 
 export default async function handler(req, res) {
   // Handle different HTTP methods
@@ -22,7 +17,7 @@ export default async function handler(req, res) {
 async function getTags(req, res) {
   try {
     const { sort_by = 'name', sort_order = 'asc' } = req.query;
-    
+
     // Start building the query
     let query = supabase
       .from('knowledge_tags')
@@ -30,17 +25,17 @@ async function getTags(req, res) {
         *,
         article_count:knowledge_article_tags(count)
       `);
-    
+
     // Apply sorting
     query = query.order(sort_by, { ascending: sort_order === 'asc' });
-    
+
     // Execute the query
     const { data, error } = await query;
-    
+
     if (error) {
       throw error;
     }
-    
+
     return res.status(200).json({ tags: data });
   } catch (error) {
     console.error('Error fetching tags:', error);
@@ -53,39 +48,39 @@ async function createTag(req, res) {
   try {
     // Check if user is admin
     const { user } = await supabase.auth.getUser(req.headers.authorization?.split(' ')[1]);
-    
+
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    
+
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('is_admin')
       .eq('id', user.id)
       .single();
-    
+
     if (userError || !userData.is_admin) {
       return res.status(403).json({ error: 'Forbidden' });
     }
-    
+
     const { name } = req.body;
-    
+
     // Validate required fields
     if (!name) {
       return res.status(400).json({ error: 'Name is required' });
     }
-    
+
     // Create tag
     const { data: tag, error: tagError } = await supabase
       .from('knowledge_tags')
       .insert([{ name }])
       .select()
       .single();
-    
+
     if (tagError) {
       throw tagError;
     }
-    
+
     return res.status(201).json({ tag });
   } catch (error) {
     console.error('Error creating tag:', error);
