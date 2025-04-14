@@ -41,7 +41,7 @@ export default async function handler(req, res) {
     }
     
     // Get template from database
-    const { data: template, error: templateError } = await supabase
+    let { data: template, error: templateError } = await supabase
       .from('email_templates')
       .select('*')
       .eq('key', templateKey)
