@@ -1,6 +1,15 @@
 
-import { supabase } from '../../../lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
 import { getDay, parseISO } from 'date-fns';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Missing Supabase environment variables');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -62,11 +71,15 @@ export default async function handler(req, res) {
     if (bookings && bookings.length > 0) {
       timeSlots = timeSlots.map(slot => {
         const isBooked = bookings.some(booking => booking.time === slot.time);
-        return { ...slot, available: !isBooked };
+        return {
+          ...slot,
+          available: !isBooked
+        };
       });
     }
 
     timeSlots.sort((a, b) => a.time.localeCompare(b.time));
+
     return res.status(200).json({ timeSlots });
   } catch (error) {
     console.error('Error getting time slots:', error);
