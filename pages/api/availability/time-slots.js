@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { getDay, parseISO } from 'date-fns';
 
@@ -18,7 +17,6 @@ export default async function handler(req, res) {
 
   try {
     const { date } = req.query;
-
     if (!date) {
       return res.status(400).json({ error: 'Date is required' });
     }
@@ -26,40 +24,18 @@ export default async function handler(req, res) {
     const parsedDate = parseISO(date);
     const dayOfWeek = getDay(parsedDate);
 
-    const { data: exception, error: exceptionError } = await supabase
-      .from('availability_exceptions')
+    const { data: weeklySlots, error: weeklyError } = await supabase
+      .from('availability_weekly')
       .select('*')
-      .eq('date', date)
-      .single();
+      .eq('day_index', dayOfWeek);
 
-    if (exceptionError && exceptionError.code !== 'PGRST116') {
-      throw exceptionError;
-    }
+    if (weeklyError) throw weeklyError;
 
-    let timeSlots = [];
-
-    if (exception) {
-      if (exception.is_available && exception.slots && exception.slots.length > 0) {
-        timeSlots = exception.slots.map(slot => ({
-          time: slot.start_time,
-          endTime: slot.end_time,
-          available: true
-        }));
-      }
-    } else {
-      const { data: weeklySlots, error: weeklyError } = await supabase
-        .from('availability_weekly')
-        .select('*')
-        .eq('day_index', dayOfWeek);
-
-      if (weeklyError) throw weeklyError;
-
-      timeSlots = weeklySlots.map(slot => ({
-        time: slot.start_time,
-        endTime: slot.end_time,
-        available: true
-      }));
-    }
+    let timeSlots = weeklySlots.map(slot => ({
+      time: slot.start_time,
+      endTime: slot.end_time,
+      available: true
+    }));
 
     const { data: bookings, error: bookingsError } = await supabase
       .from('bookings')
@@ -71,15 +47,11 @@ export default async function handler(req, res) {
     if (bookings && bookings.length > 0) {
       timeSlots = timeSlots.map(slot => {
         const isBooked = bookings.some(booking => booking.time === slot.time);
-        return {
-          ...slot,
-          available: !isBooked
-        };
+        return { ...slot, available: !isBooked };
       });
     }
 
     timeSlots.sort((a, b) => a.time.localeCompare(b.time));
-
     return res.status(200).json({ timeSlots });
   } catch (error) {
     console.error('Error getting time slots:', error);
